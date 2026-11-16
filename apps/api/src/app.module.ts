@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, RequestMethod } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -19,6 +19,8 @@ import { HealthController } from './modules/health/health.controller';
     ConfigModule.forRoot({ isGlobal: true, validate: validarEnv, cache: true }),
     // Logs estructurados en JSON. Nunca se registran tokens, cookies ni cuerpos (Parte 6, sección 4.2)
     LoggerModule.forRoot({
+      // Sintaxis de comodín de Express 5 (path-to-regexp 8)
+      forRoutes: [{ path: '{*ruta}', method: RequestMethod.ALL }],
       pinoHttp: {
         level: process.env.NODE_ENV === 'test' ? 'silent' : 'info',
         redact: {
