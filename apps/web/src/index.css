@@ -1,0 +1,70 @@
+@import 'tailwindcss';
+
+/* Identidad visual de AutoNota (Parte 6, sección 5.3): un cuaderno de trabajo escrito a lápiz.
+   Los tokens se cambian en un solo lugar. Kraft y renglón nunca se usan para texto. */
+@theme {
+  --color-papel: #fbf8f1;
+  --color-kraft-claro: #f3e9d7;
+  --color-grafito: #2b2724;
+  --color-lapiz: #5e5852;
+  --color-cafe: #4a3222;
+  --color-madera: #8b5e3c;
+  --color-kraft: #c8a27a;
+  --color-renglon: #ece3d3;
+
+  --font-mano: 'Caveat', 'Segoe Print', cursive;
+  --font-sans: 'Atkinson Hyperlegible', system-ui, sans-serif;
+
+  /* Esquinas irregulares, como una línea dibujada a mano */
+  --radius-trazo: 255px 14px 225px 14px / 14px 225px 14px 255px;
+  --radius-trazo-2: 14px 225px 14px 255px / 255px 14px 225px 14px;
+
+  --shadow-nota: 2px 3px 0 rgb(43 39 36 / 0.12);
+}
+
+@layer base {
+  html {
+    background-color: var(--color-papel);
+    color: var(--color-grafito);
+    font-family: var(--font-sans);
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    min-height: 100dvh;
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-madera);
+    outline-offset: 2px;
+  }
+  a {
+    color: var(--color-madera);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+  }
+}
+
+@layer components {
+  /* Renglones de cuaderno con línea de margen en kraft: listas y agenda */
+  .fondo-cuaderno {
+    background-color: var(--color-papel);
+    background-image:
+      linear-gradient(
+        to right,
+        transparent 1.75rem,
+        var(--color-kraft) 1.75rem,
+        var(--color-kraft) calc(1.75rem + 2px),
+        transparent calc(1.75rem + 2px)
+      ),
+      repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent calc(2rem - 1px),
+        var(--color-renglon) calc(2rem - 1px),
+        var(--color-renglon) 2rem
+      );
+  }
+  .montos {
+    font-variant-numeric: tabular-nums;
+  }
+}

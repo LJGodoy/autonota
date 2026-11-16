@@ -1,0 +1,40 @@
+# Entorno de desarrollo local (ADR-009): API y PostgreSQL 16.
+# `docker compose up --build` levanta la base y la API (aplica las migraciones al arrancar).
+# Para desarrollar con recarga en caliente, usar `pnpm dev` (levanta solo la base en Docker).
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: autonota
+      POSTGRES_PASSWORD: autonota
+      POSTGRES_DB: autonota
+    ports:
+      - '5432:5432'
+    volumes:
+      - autonota-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U autonota -d autonota']
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://autonota:autonota@db:5432/autonota
+      JWT_ACCESS_SECRET: secreto-local-solo-para-desarrollo-0123456789
+      REFRESH_TOKEN_DIAS: 30
+      APP_URL: http://localhost:5173
+      MAIL_FROM: 'AutoNota <no-responder@autonota.local>'
+    ports:
+      - '3000:3000'
+
+volumes:
+  autonota-db:

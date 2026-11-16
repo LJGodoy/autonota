@@ -1,0 +1,307 @@
+// AutoNota: esquema Prisma (Parte 3).
+// La fuente de verdad de la estructura es el script SQL de la Parte 3, aplicado en la
+// migración inicial. Prisma no modela estos objetos, que se crean con SQL en la migración
+// y que verifica la prueba test/integration/esquema.int-spec.ts:
+//   - las restricciones CHECK,
+//   - el índice único parcial ux_turnos_mismo_inicio y los índices parciales,
+//   - la columna calculada movimientos.mes_imputacion (por eso no figura en el modelo).
+// Antes de aplicar una migración generada con `prisma migrate dev`, revisar que no los borre.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TipoEmprendimiento {
+  TURNERO
+  CLASES
+  VENTAS
+
+  @@map("tipo_emprendimiento")
+}
+
+enum EstadoTurno {
+  PROGRAMADO
+  REALIZADO
+  AUSENTE
+  CANCELADO
+
+  @@map("estado_turno")
+}
+
+enum EstadoClase {
+  PROGRAMADA
+  CANCELADA
+
+  @@map("estado_clase")
+}
+
+enum ModalidadClase {
+  INDIVIDUAL
+  GRUPAL
+
+  @@map("modalidad_clase")
+}
+
+enum EstadoTarea {
+  PENDIENTE
+  EN_CURSO
+  REALIZADA
+
+  @@map("estado_tarea")
+}
+
+enum PrioridadTarea {
+  BAJA
+  MEDIA
+  ALTA
+
+  @@map("prioridad_tarea")
+}
+
+enum TipoMovimiento {
+  INGRESO
+  GASTO
+
+  @@map("tipo_movimiento")
+}
+
+enum MedioPago {
+  EFECTIVO
+  TRANSFERENCIA
+  TARJETA
+  BILLETERA_VIRTUAL
+  OTRO
+
+  @@map("medio_pago")
+}
+
+// --- Cuenta ---
+
+model Usuario {
+  id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nombre             String              @db.VarChar(100)
+  email              String              @unique @db.Citext
+  passwordHash       String              @map("password_hash")
+  esDemo             Boolean             @default(false) @map("es_demo")
+  expiraEn           DateTime?           @map("expira_en") @db.Timestamptz(6)
+  politicaAceptadaEn DateTime            @map("politica_aceptada_en") @db.Timestamptz(6)
+  creadoEn           DateTime            @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn      DateTime            @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(6)
+  emprendimientos    Emprendimiento[]
+  refreshTokens      RefreshToken[]
+  tokensRecuperacion TokenRecuperacion[]
+
+  @@map("usuarios")
+}
+
+model RefreshToken {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  usuarioId  String    @map("usuario_id") @db.Uuid
+  tokenHash  String    @unique @map("token_hash")
+  expiraEn   DateTime  @map("expira_en") @db.Timestamptz(6)
+  revocadoEn DateTime? @map("revocado_en") @db.Timestamptz(6)
+  creadoEn   DateTime  @default(now()) @map("creado_en") @db.Timestamptz(6)
+  usuario    Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model TokenRecuperacion {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  usuarioId String    @map("usuario_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash")
+  expiraEn  DateTime  @map("expira_en") @db.Timestamptz(6)
+  usadoEn   DateTime? @map("usado_en") @db.Timestamptz(6)
+  creadoEn  DateTime  @default(now()) @map("creado_en") @db.Timestamptz(6)
+  usuario   Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("tokens_recuperacion")
+}
+
+model Emprendimiento {
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  usuarioId        String             @map("usuario_id") @db.Uuid
+  nombre           String             @db.VarChar(100)
+  tipo             TipoEmprendimiento
+  creadoEn         DateTime           @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn    DateTime           @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(6)
+  usuario          Usuario            @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  horariosAtencion HorarioAtencion[]
+  bloqueos         Bloqueo[]
+  clientes         Cliente[]
+  turnos           Turno[]
+  alumnos          Alumno[]
+  clases           Clase[]
+  tareas           Tarea[]
+  movimientos      Movimiento[]
+
+  @@index([usuarioId], map: "ix_emprendimientos_usuario")
+  @@map("emprendimientos")
+}
+
+// --- Turnero ---
+
+model HorarioAtencion {
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  emprendimientoId String         @map("emprendimiento_id") @db.Uuid
+  diaSemana        Int            @map("dia_semana") @db.SmallInt
+  horaInicio       DateTime       @map("hora_inicio") @db.Time(6)
+  horaFin          DateTime       @map("hora_fin") @db.Time(6)
+  emprendimiento   Emprendimiento @relation(fields: [emprendimientoId], references: [id], onDelete: Cascade)
+
+  @@index([emprendimientoId, diaSemana], map: "ix_horarios_emprendimiento")
+  @@map("horarios_atencion")
+}
+
+model Bloqueo {
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  emprendimientoId String         @map("emprendimiento_id") @db.Uuid
+  inicio           DateTime       @db.Timestamptz(6)
+  fin              DateTime       @db.Timestamptz(6)
+  motivo           String?        @db.VarChar(200)
+  emprendimiento   Emprendimiento @relation(fields: [emprendimientoId], references: [id], onDelete: Cascade)
+
+  @@index([emprendimientoId, inicio], map: "ix_bloqueos_emprendimiento")
+  @@map("bloqueos")
+}
+
+model Cliente {
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  emprendimientoId String         @map("emprendimiento_id") @db.Uuid
+  nombre           String         @db.VarChar(100)
+  telefono         String?        @db.VarChar(30)
+  notas            String?
+  activo           Boolean        @default(true)
+  creadoEn         DateTime       @default(now()) @map("creado_en") @db.Timestamptz(6)
+  emprendimiento   Emprendimiento @relation(fields: [emprendimientoId], references: [id], onDelete: Cascade)
+  turnos           Turno[]
+
+  @@index([emprendimientoId], map: "ix_clientes_emprendimiento")
+  @@map("clientes")
+}
+
+model Turno {
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  emprendimientoId String         @map("emprendimiento_id") @db.Uuid
+  clienteId        String         @map("cliente_id") @db.Uuid
+  inicio           DateTime       @db.Timestamptz(6)
+  fin              DateTime       @db.Timestamptz(6)
+  descripcion      String?
+  estado           EstadoTurno    @default(PROGRAMADO)
+  creadoEn         DateTime       @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn    DateTime       @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(6)
+  emprendimiento   Emprendimiento @relation(fields: [emprendimientoId], references: [id], onDelete: Cascade)
+  cliente          Cliente        @relation(fields: [clienteId], references: [id], onDelete: NoAction)
+  cobros           Movimiento[]
+
+  // ux_turnos_mismo_inicio (índice único parcial) se crea con SQL en la migración
+  @@index([emprendimientoId, inicio], map: "ix_turnos_emprendimiento_inicio")
+  @@map("turnos")
+}
+
+// --- Calendario de clases ---
+
+model Alumno {
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  emprendimientoId String         @map("emprendimiento_id") @db.Uuid
+  nombre           String         @db.VarChar(100)
+  telefono         String?        @db.VarChar(30)
+  notas            String?
+  activo           Boolean        @default(true)
+  creadoEn         DateTime       @default(now()) @map("creado_en") @db.Timestamptz(6)
+  emprendimiento   Emprendimiento @relation(fields: [emprendimientoId], references: [id], onDelete: Cascade)
+  clases           ClaseAlumno[]
+  pagos            Movimiento[]
+
+  @@index([emprendimientoId], map: "ix_alumnos_emprendimiento")
+  @@map("alumnos")
+}
+
+model Clase {
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  emprendimientoId String         @map("emprendimiento_id") @db.Uuid
+  titulo           String?        @db.VarChar(100)
+  modalidad        ModalidadClase
+  inicio           DateTime       @db.Timestamptz(6)
+  fin              DateTime       @db.Timestamptz(6)
+  estado           EstadoClase    @default(PROGRAMADA)
+  creadoEn         DateTime       @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn    DateTime       @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(6)
+  emprendimiento   Emprendimiento @relation(fields: [emprendimientoId], references: [id], onDelete: Cascade)
+  alumnos          ClaseAlumno[]
+
+  @@index([emprendimientoId, inicio], map: "ix_clases_emprendimiento_inicio")
+  @@map("clases")
+}
+
+model ClaseAlumno {
+  claseId  String @map("clase_id") @db.Uuid
+  alumnoId String @map("alumno_id") @db.Uuid
+  clase    Clase  @relation(fields: [claseId], references: [id], onDelete: Cascade)
+  alumno   Alumno @relation(fields: [alumnoId], references: [id], onDelete: Cascade)
+
+  @@id([claseId, alumnoId])
+  @@index([alumnoId], map: "ix_clase_alumnos_alumno")
+  @@map("clase_alumnos")
+}
+
+// --- Ventas ---
+
+model Tarea {
+  id               String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  emprendimientoId String           @map("emprendimiento_id") @db.Uuid
+  titulo           String           @db.VarChar(150)
+  descripcion      String?
+  estado           EstadoTarea      @default(PENDIENTE)
+  prioridad        PrioridadTarea   @default(MEDIA)
+  creadoEn         DateTime         @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn    DateTime         @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(6)
+  emprendimiento   Emprendimiento   @relation(fields: [emprendimientoId], references: [id], onDelete: Cascade)
+  historial        TareaHistorial[]
+  ventas           Movimiento[]
+
+  @@index([emprendimientoId, estado, prioridad], map: "ix_tareas_emprendimiento")
+  @@map("tareas")
+}
+
+model TareaHistorial {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tareaId        String       @map("tarea_id") @db.Uuid
+  estadoAnterior EstadoTarea? @map("estado_anterior")
+  estadoNuevo    EstadoTarea  @map("estado_nuevo")
+  cambiadoEn     DateTime     @default(now()) @map("cambiado_en") @db.Timestamptz(6)
+  tarea          Tarea        @relation(fields: [tareaId], references: [id], onDelete: Cascade)
+
+  @@index([tareaId, cambiadoEn], map: "ix_tareas_historial_tarea")
+  @@map("tareas_historial")
+}
+
+// --- Movimientos de dinero (los tres tipos de negocio) ---
+
+model Movimiento {
+  id                 String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  emprendimientoId   String         @map("emprendimiento_id") @db.Uuid
+  tipo               TipoMovimiento
+  montoCentavos      BigInt         @map("monto_centavos")
+  fecha              DateTime       @db.Date
+  descripcion        String?
+  medioPago          MedioPago?     @map("medio_pago")
+  claveIdempotencia  String?        @unique @map("clave_idempotencia") @db.Uuid
+  turnoId            String?        @map("turno_id") @db.Uuid
+  alumnoId           String?        @map("alumno_id") @db.Uuid
+  tareaId            String?        @map("tarea_id") @db.Uuid
+  mesCorrespondiente DateTime?      @map("mes_correspondiente") @db.Date
+  // mes_imputacion: columna GENERATED STORED creada con SQL (Parte 3, sección 4.2)
+  creadoEn           DateTime       @default(now()) @map("creado_en") @db.Timestamptz(6)
+  emprendimiento     Emprendimiento @relation(fields: [emprendimientoId], references: [id], onDelete: Cascade)
+  turno              Turno?         @relation(fields: [turnoId], references: [id], onDelete: NoAction)
+  alumno             Alumno?        @relation(fields: [alumnoId], references: [id], onDelete: NoAction)
+  tarea              Tarea?         @relation(fields: [tareaId], references: [id], onDelete: SetNull)
+
+  @@map("movimientos")
+}

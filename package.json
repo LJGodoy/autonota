@@ -1,0 +1,37 @@
+{
+  "name": "autonota",
+  "private": true,
+  "description": "AutoNota: turnos, clases y ventas para trabajadores autónomos",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "docker compose up -d db && pnpm --filter @autonota/shared build && pnpm --filter @autonota/api prisma:deploy && pnpm --parallel --filter @autonota/api --filter @autonota/web --filter @autonota/shared dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm --filter @autonota/shared build && pnpm -r typecheck",
+    "lint": "eslint . --max-warnings 0",
+    "test": "pnpm -r test",
+    "test:integration": "pnpm --filter @autonota/api test:integration",
+    "verify": "pnpm typecheck && pnpm lint && pnpm test && pnpm test:integration && pnpm build",
+    "format": "prettier --write .",
+    "seed": "pnpm --filter @autonota/api seed",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.6.1",
+    "@commitlint/config-conventional": "^19.6.0",
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "globals": "^15.14.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.3.0",
+    "prettier": "^3.4.2",
+    "typescript": "~5.7.2",
+    "typescript-eslint": "^8.19.0"
+  }
+}

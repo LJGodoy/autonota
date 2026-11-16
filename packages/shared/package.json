@@ -1,0 +1,21 @@
+{
+  "name": "@autonota/shared",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Esquemas Zod y tipos compartidos entre la SPA y la API (ADR-012)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch --preserveWatchOutput",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "typescript": "~5.7.2",
+    "vitest": "^3.0.5"
+  }
+}
