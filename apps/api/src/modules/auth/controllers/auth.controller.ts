@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, HttpCode, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler';
+import { SkipThrottle } from '@nestjs/throttler';
+import { IpThrottlerGuard } from '../../../common/auth/ip-throttler.guard';
 import type { CookieOptions, Request, Response } from 'express';
 import type { CuerpoSesion, Usuario } from '@autonota/shared';
 import { AppConfig } from '../../../common/config/config';
@@ -31,7 +32,7 @@ export class AuthController {
 
   @Post('registro')
   @Publico()
-  @UseGuards(ThrottlerGuard)
+  @UseGuards(IpThrottlerGuard)
   @SkipThrottle({ demo: true })
   @ApiOperation({ summary: 'Crea la cuenta e inicia sesión (RF-01)' })
   @ApiResponse({ status: 201, description: 'Cuerpo de sesión' })
@@ -48,7 +49,7 @@ export class AuthController {
   @Post('login')
   @Publico()
   @HttpCode(200)
-  @UseGuards(ThrottlerGuard)
+  @UseGuards(IpThrottlerGuard)
   @SkipThrottle({ demo: true })
   @ApiOperation({ summary: 'Inicia sesión (CU-01)' })
   @ApiResponse({ status: 200, description: 'Cuerpo de sesión' })
@@ -94,7 +95,7 @@ export class AuthController {
   @Post('recuperar')
   @Publico()
   @HttpCode(202)
-  @UseGuards(ThrottlerGuard)
+  @UseGuards(IpThrottlerGuard)
   @SkipThrottle({ demo: true })
   @ApiOperation({ summary: 'Envía el mail de recuperación (CU-03). Responde 202 siempre' })
   @ApiResponse({ status: 202 })
@@ -126,7 +127,7 @@ export class AuthController {
 
   @Post('demo')
   @Publico()
-  @UseGuards(ThrottlerGuard)
+  @UseGuards(IpThrottlerGuard)
   @SkipThrottle({ auth: true })
   @ApiOperation({
     summary: 'Crea una cuenta de demostración que se elimina a las 48 horas (CU-15)',

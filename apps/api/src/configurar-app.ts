@@ -3,14 +3,15 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { cleanupOpenApiDoc } from 'nestjs-zod';
+import { SALTOS_PROXY_PRODUCCION } from './common/auth/ip-cliente';
 
 export const PREFIJO_API = 'api/v1';
 
 /** Configuración común de la aplicación, usada por main.ts y por las pruebas de integración */
 export function configurarApp(app: NestExpressApplication): void {
-  // ADR-010: la API recibe todo desde el proxy de Vercel (y el balanceador de Render) y toma la IP
-  // real de X-Forwarded-For para el límite de intentos. En producción se confía en esos dos saltos.
-  app.set('trust proxy', process.env.NODE_ENV === 'production' ? 2 : 1);
+  // ADR-010: en producción se confía en los 3 saltos de Render (proxy local, balanceador y
+  // Cloudflare); la IP del visitante detrás de Vercel la resuelve obtenerIpCliente. En local, 1 salto.
+  app.set('trust proxy', process.env.NODE_ENV === 'production' ? SALTOS_PROXY_PRODUCCION : 1);
   app.use(helmet());
   app.use(cookieParser());
   app.setGlobalPrefix(PREFIJO_API);
