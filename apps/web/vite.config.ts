@@ -8,6 +8,17 @@ const shared = fileURLToPath(new URL('../../packages/shared/src/index.ts', impor
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: { alias: { '@autonota/shared': shared } },
+  build: {
+    rollupOptions: {
+      output: {
+        // Librerías que cambian poco, en archivos aparte que el navegador guarda en caché
+        manualChunks: {
+          react: ['react', 'react-dom', 'react-router'],
+          sentry: ['@sentry/react'],
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     // ADR-001: en desarrollo, el proxy de Vite cumple el papel del rewrite de Vercel

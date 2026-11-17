@@ -1,0 +1,162 @@
+import { Injectable } from '@nestjs/common';
+import type {
+  CrearMovimientoInput,
+  EditarMovimientoInput,
+  FiltroMovimientos,
+  Movimiento,
+  Paginado,
+} from '@autonota/shared';
+import type { EmprendimientoDePeticion } from '../../../common/auth/peticion';
+import { DomainException } from '../../../common/errors/domain.exception';
+import { esViolacionUnica } from '../../../common/prisma/prisma.service';
+import { MovimientosRepository } from '../repositories/movimientos.repository';
+import { aMovimientoDto, desdeTextoFecha, desdeTextoMes } from '../dto/movimiento.dto';
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+@Injectable()
+export class MovimientosService {
+  constructor(private readonly repo: MovimientosRepository) {}
+
+  /** RF-73 */
+  async listar(emp: EmprendimientoDePeticion, f: FiltroMovimientos): Promise<Paginado<Movimiento>> {
+    const [items, total] = await this.repo.listar(emp.id, {
+      tipo: f.tipo,
+      mes: f.mes ? desdeTextoMes(f.mes) : undefined,
+      medioPago: f.medioPago,
+      alumnoId: f.alumnoId,
+      tareaId: f.tareaId,
+      saltar: (f.page - 1) * f.pageSize,
+      tomar: f.pageSize,
+    });
+    return { data: items.map(aMovimientoDto), meta: { page: f.page, pageSize: f.pageSize, total } };
+  }
+
+  /**
+   * RF-07, RF-18, RF-20, RF-34, RF-36, RF-55, RF-56. Si la clave de idempotencia ya se usó
+   * en este emprendimiento, devuelve el movimiento existente en lugar de crear otro.
+   */
+  async crear(
+    emp: EmprendimientoDePeticion,
+    input: CrearMovimientoInput,
+    claveIdempotencia?: string,
+  ): Promise<Movimiento> {
+    if (claveIdempotencia) {
+      const existente = await this.buscarPorClave(emp.id, claveIdempotencia);
+      if (existente) return existente;
+    }
+    await this.validarVinculos(emp, input);
+
+    try {
+      const creado = await this.repo.crear({
+        emprendimientoId: emp.id,
+        tipo: input.tipo,
+        montoCentavos: BigInt(input.montoCentavos),
+        fecha: desdeTextoFecha(input.fecha),
+        descripcion: input.descripcion || null,
+        medioPago: input.medioPago ?? null,
+        claveIdempotencia: claveIdempotencia ?? null,
+        alumnoId: input.alumnoId ?? null,
+        tareaId: input.tareaId ?? null,
+        mesCorrespondiente: input.mesCorrespondiente
+          ? desdeTextoMes(input.mesCorrespondiente)
+          : null,
+      });
+      return aMovimientoDto(creado);
+    } catch (error) {
+      // Dos pedidos simultáneos con la misma clave: el segundo devuelve el ya creado
+      if (claveIdempotencia && esViolacionUnica(error)) {
+        const existente = await this.buscarPorClave(emp.id, claveIdempotencia);
+        if (existente) return existente;
+      }
+      throw error;
+    }
+  }
+
+  /** RF-07: corregir un movimiento cargado por error */
+  async editar(
+    emp: EmprendimientoDePeticion,
+    id: string,
+    input: EditarMovimientoInput,
+  ): Promise<Movimiento> {
+    const actual = await this.obtener(emp, id);
+    if (input.mesCorrespondiente && !actual.alumnoId) {
+      throw new DomainException(
+        'VALIDACION',
+        'Solo los pagos de alumnos tienen mes correspondiente.',
+        [{ field: 'mesCorrespondiente', message: 'Este movimiento no es el pago de un alumno' }],
+      );
+    }
+    const actualizado = await this.repo.actualizar(actual.id, {
+      montoCentavos: input.montoCentavos === undefined ? undefined : BigInt(input.montoCentavos),
+      fecha: input.fecha ? desdeTextoFecha(input.fecha) : undefined,
+      descripcion: input.descripcion === undefined ? undefined : input.descripcion || null,
+      medioPago: input.medioPago,
+      mesCorrespondiente: input.mesCorrespondiente
+        ? desdeTextoMes(input.mesCorrespondiente)
+        : undefined,
+    });
+    return aMovimientoDto(actualizado);
+  }
+
+  /** RF-07: eliminar un movimiento cargado por error, incluidos los cobros de turnos */
+  async eliminar(emp: EmprendimientoDePeticion, id: string): Promise<void> {
+    const actual = await this.obtener(emp, id);
+    await this.repo.eliminar(actual.id);
+  }
+
+  private async obtener(emp: EmprendimientoDePeticion, id: string) {
+    const m = UUID.test(id) ? await this.repo.buscarDelEmprendimiento(id, emp.id) : null;
+    if (!m) throw new DomainException('NO_ENCONTRADO');
+    return m;
+  }
+
+  private async buscarPorClave(
+    emprendimientoId: string,
+    clave: string,
+  ): Promise<Movimiento | null> {
+    const existente = await this.repo.buscarPorClave(clave);
+    if (!existente) return null;
+    if (existente.emprendimientoId !== emprendimientoId) {
+      throw new DomainException(
+        'VALIDACION',
+        'La clave de idempotencia ya se usó para otro registro.',
+        [{ field: 'Idempotency-Key', message: 'Generá una clave nueva' }],
+      );
+    }
+    return aMovimientoDto(existente);
+  }
+
+  /** Parte 4, sección 9; Parte 6, sección 9: los vínculos deben ser del mismo emprendimiento */
+  private async validarVinculos(
+    emp: EmprendimientoDePeticion,
+    input: CrearMovimientoInput,
+  ): Promise<void> {
+    if (input.alumnoId) {
+      if (emp.tipo !== 'CLASES') {
+        throw new DomainException(
+          'TIPO_INCOMPATIBLE',
+          'Los pagos de alumnos son solo para calendarios de clases.',
+        );
+      }
+      if (!(await this.repo.alumnoPerteneceA(input.alumnoId, emp.id))) {
+        throw new DomainException('VALIDACION', 'El alumno no pertenece a este emprendimiento.', [
+          { field: 'alumnoId', message: 'Alumno inexistente' },
+        ]);
+      }
+    }
+    if (input.tareaId) {
+      if (emp.tipo !== 'VENTAS') {
+        throw new DomainException(
+          'TIPO_INCOMPATIBLE',
+          'Las ventas vinculadas a tareas son solo para emprendimientos de ventas.',
+        );
+      }
+      if (!(await this.repo.tareaPerteneceA(input.tareaId, emp.id))) {
+        throw new DomainException('VALIDACION', 'La tarea no pertenece a este emprendimiento.', [
+          { field: 'tareaId', message: 'Tarea inexistente' },
+        ]);
+      }
+    }
+  }
+}

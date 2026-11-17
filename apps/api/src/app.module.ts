@@ -12,6 +12,8 @@ import { ErroresFilter } from './common/errors/errores.filter';
 import { JwtAuthGuard } from './common/auth/jwt-auth.guard';
 import { AuthModule } from './modules/auth/auth.module';
 import { EmprendimientosModule } from './modules/emprendimientos/emprendimientos.module';
+import { MovimientosModule } from './modules/movimientos/movimientos.module';
+import { EstadisticasModule } from './modules/estadisticas/estadisticas.module';
 import { HealthController } from './modules/health/health.controller';
 
 @Module({
@@ -56,6 +58,8 @@ import { HealthController } from './modules/health/health.controller';
     CommonModule,
     AuthModule,
     EmprendimientosModule,
+    MovimientosModule,
+    EstadisticasModule,
   ],
   controllers: [HealthController],
   providers: [

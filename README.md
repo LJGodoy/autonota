@@ -4,8 +4,8 @@ Sistema web gratuito, en español y en pesos argentinos, para que trabajadores a
 turnos, clases o tareas y registren ingresos y gastos. Se ve como un cuaderno de trabajo escrito a lápiz.
 
 La especificación completa está en el documento de diseño (SDD v1.2). Este repositorio implementa
-las **fases 1 a 3**: base del proyecto, cuenta, sesión, emprendimientos, cuentas de demostración
-y publicación.
+las **fases 1 a 4**: base del proyecto, cuenta, sesión, emprendimientos, cuentas de demostración,
+publicación, y movimientos con estadísticas.
 
 **Demo publicada:** https://autonota-two.vercel.app (API: https://autonota-api.onrender.com/api/docs)
 
@@ -14,7 +14,8 @@ y publicación.
 | 1    | Monorepo, tooling, esquema y migración, base de API y SPA, identidad visual | Hecha      |
 | 2    | Cuenta, sesión, emprendimientos, demo (RF-01 a RF-06, RF-08, RF-09)         | Hecha      |
 | 3    | Publicación en Vercel, Render y Neon                                        | Hecha      |
-| 4-7  | Movimientos y estadísticas, turnero, clases, ventas                         | Pendientes |
+| 4    | Movimientos y estadísticas (RF-07, RF-70 a RF-73, RNF-04, CU-12)            | Hecha      |
+| 5-7  | Turnero, calendario de clases, ventas                                       | Pendientes |
 | 8    | Playwright contra el entorno publicado, cierre                              | Pendiente  |
 
 ## Entorno publicado (ADR-010)
@@ -94,3 +95,14 @@ Decisiones tomadas donde el SDD no fijaba el detalle (criterio de la Parte 1, se
 6. **El usuario de la API incluye `esDemo` y `expiraEn`** (amplía el contrato de la Parte 4) para que la SPA avise cuándo se borra la demo.
 7. **Las pruebas de integración no borran la base de pruebas**: aplican las migraciones pendientes con `prisma migrate deploy` y cada prueba crea sus propios datos.
 8. **Textos legales en borrador**, marcados en pantalla como pendientes de revisión legal (SDD 0.7).
+
+## Supuestos de la fase 4
+
+1. **Módulo `movimientos` propio en la API.** El ADR-005 no lo lista, pero `/movimientos` es común a los tres tipos de negocio (Parte 4, sección 9). Los módulos turnero, clases y ventas lo van a usar a través de `MovimientosService`.
+2. **Idempotency-Key:** si la clave ya se usó en el mismo emprendimiento, la API responde 201 con el registro existente. Si se usó en otro emprendimiento, responde 400 `VALIDACION`.
+3. **`alumnoId` fuera de un calendario de clases o `tareaId` fuera de ventas** responde 409 `TIPO_INCOMPATIBLE`.
+4. **Filtro por mes del listado:** usa la condición equivalente a `mes_imputacion` (el mes correspondiente o el mes de la fecha), porque Prisma no modela la columna calculada. Las estadísticas sí consultan la columna y su índice.
+5. **Recharts 3**, porque el SDD no fija la versión y la 2 está deprecada.
+6. **Colores del gráfico:** café para ingresos y madera con rayado diagonal para gastos. Se distinguen con todo tipo de daltonismo, pero por diseño no alcanzan la saturación que pide el validador de paletas; la identidad del SDD es monocromática.
+7. **El formulario todavía no ofrece el pago de un alumno ni la venta vinculada a una tarea.** La API ya los acepta; la interfaz llega con las fases 6 y 7.
+8. **El listado del mes muestra hasta 100 movimientos** y avisa si hay más.

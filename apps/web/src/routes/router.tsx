@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter, Navigate } from 'react-router';
 import { LayoutApp, LayoutPublico, SoloSinSesion } from './Layouts';
 import { PantallaInicio } from '../features/auth/PantallaInicio';
 import { PantallaIngresar } from '../features/auth/PantallaIngresar';
@@ -9,7 +9,8 @@ import { PantallaCuenta } from '../features/auth/PantallaCuenta';
 import { PoliticaPrivacidad } from '../features/legal/PoliticaPrivacidad';
 import { Terminos } from '../features/legal/Terminos';
 import { PantallaEmprendimientos } from '../features/emprendimientos/PantallaEmprendimientos';
-import { PantallaEmprendimiento } from '../features/emprendimientos/PantallaEmprendimiento';
+import { LayoutEmprendimiento } from '../features/emprendimientos/LayoutEmprendimiento';
+import { PantallaMovimientos } from '../features/movimientos/PantallaMovimientos';
 import { PantallaNoEncontrada } from './PantallaNoEncontrada';
 
 export const router = createBrowserRouter([
@@ -36,7 +37,22 @@ export const router = createBrowserRouter([
     element: <LayoutApp />,
     children: [
       { path: '/emprendimientos', element: <PantallaEmprendimientos /> },
-      { path: '/emprendimientos/:eid', element: <PantallaEmprendimiento /> },
+      {
+        path: '/emprendimientos/:eid',
+        element: <LayoutEmprendimiento />,
+        children: [
+          { index: true, element: <Navigate to="movimientos" replace /> },
+          { path: 'movimientos', element: <PantallaMovimientos /> },
+          {
+            path: 'estadisticas',
+            // Recharts se descarga solo al abrir las estadísticas, para no agrandar la carga inicial
+            lazy: async () => ({
+              Component: (await import('../features/estadisticas/PantallaEstadisticas'))
+                .PantallaEstadisticas,
+            }),
+          },
+        ],
+      },
       { path: '/cuenta', element: <PantallaCuenta /> },
     ],
   },
