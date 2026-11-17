@@ -4,6 +4,15 @@ import { addDays, format } from 'date-fns';
 
 export const ZONA_ARGENTINA = 'America/Argentina/Buenos_Aires';
 
+const DIAS_CORTOS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'] as const;
+
+/** "vie 20/11 10:00" en hora de Argentina, para mensajes al usuario */
+export function formatearFechaHoraCorta(instante: Date): string {
+  const local = new TZDate(instante.getTime(), ZONA_ARGENTINA);
+  const dos = (n: number) => String(n).padStart(2, '0');
+  return `${DIAS_CORTOS[local.getDay()]} ${dos(local.getDate())}/${dos(local.getMonth() + 1)} ${dos(local.getHours())}:${dos(local.getMinutes())}`;
+}
+
 /** Fecha y hora local de Argentina convertida al instante UTC */
 export function desdeHoraArgentina(
   anio: number,

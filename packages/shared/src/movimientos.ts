@@ -31,8 +31,8 @@ export const esquemaMes = z
   .string({ required_error: 'Elegí un mes' })
   .regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Usá el formato AAAA-MM');
 
-const esquemaDescripcion = z.string().trim().max(500, 'Usá como máximo 500 caracteres');
-const esquemaMedioPago = z.enum(MEDIOS_PAGO, {
+export const esquemaDescripcion = z.string().trim().max(500, 'Usá como máximo 500 caracteres');
+export const esquemaMedioPago = z.enum(MEDIOS_PAGO, {
   errorMap: () => ({ message: 'Elegí un medio de pago válido' }),
 });
 const esquemaUuid = (campo: string) => z.string().uuid(`${campo} inválido`);

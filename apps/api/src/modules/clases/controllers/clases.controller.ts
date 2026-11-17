@@ -1,0 +1,105 @@
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { createZodDto } from 'nestjs-zod';
+import {
+  esquemaCopiarSemana,
+  esquemaCrearClase,
+  esquemaEditarClase,
+  esquemaFiltroClases,
+  type Clase,
+  type ResultadoCopiaClases,
+} from '@autonota/shared';
+import { EmprendimientoActual } from '../../../common/auth/decoradores';
+import type { EmprendimientoDePeticion } from '../../../common/auth/peticion';
+import {
+  EmprendimientoGuard,
+  TiposEmprendimiento,
+} from '../../../common/emprendimiento/emprendimiento.guard';
+import { ClasesService } from '../services/clases.service';
+
+class CrearClaseDto extends createZodDto(esquemaCrearClase) {}
+class EditarClaseDto extends createZodDto(esquemaEditarClase) {}
+class FiltroClasesDto extends createZodDto(esquemaFiltroClases) {}
+class CopiarSemanaClasesDto extends createZodDto(esquemaCopiarSemana) {}
+
+/** Clases (Parte 4, sección 7.2) */
+@ApiTags('clases')
+@ApiBearerAuth()
+@Controller('emprendimientos/:eid/clases')
+@UseGuards(EmprendimientoGuard)
+@TiposEmprendimiento('CLASES')
+export class ClasesController {
+  constructor(private readonly servicio: ClasesService) {}
+
+  @Get()
+  @ApiOperation({
+    summary: 'Clases del rango para la vista diaria, semanal o mensual (RF-33). Máximo 42 días',
+  })
+  listar(
+    @EmprendimientoActual() emp: EmprendimientoDePeticion,
+    @Query() f: FiltroClasesDto,
+  ): Promise<Clase[]> {
+    return this.servicio.listar(emp.id, f.desde, f.hasta);
+  }
+
+  @Post()
+  @ApiOperation({ summary: 'Crea una clase individual o grupal (RF-31)' })
+  crear(
+    @EmprendimientoActual() emp: EmprendimientoDePeticion,
+    @Body() dto: CrearClaseDto,
+  ): Promise<Clase> {
+    return this.servicio.crear(emp.id, dto);
+  }
+
+  @Post('copiar-semana')
+  @ApiOperation({ summary: 'Copia las clases no canceladas a la semana siguiente (RF-37, CU-10)' })
+  @ApiResponse({ status: 201, description: '{ creadas, omitidas }' })
+  @ApiResponse({ status: 409, description: 'SEMANA_DESTINO_OCUPADA' })
+  copiarSemana(
+    @EmprendimientoActual() emp: EmprendimientoDePeticion,
+    @Body() dto: CopiarSemanaClasesDto,
+  ): Promise<ResultadoCopiaClases> {
+    return this.servicio.copiarSemana(emp.id, dto);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Detalle con alumnos' })
+  obtener(
+    @EmprendimientoActual() emp: EmprendimientoDePeticion,
+    @Param('id') id: string,
+  ): Promise<Clase> {
+    return this.servicio.obtener(emp.id, id);
+  }
+
+  @Patch(':id')
+  @ApiOperation({
+    summary: 'Edita o reprograma una clase PROGRAMADA, incluida la lista de alumnos (RF-32)',
+  })
+  editar(
+    @EmprendimientoActual() emp: EmprendimientoDePeticion,
+    @Param('id') id: string,
+    @Body() dto: EditarClaseDto,
+  ): Promise<Clase> {
+    return this.servicio.editar(emp.id, id, dto);
+  }
+
+  @Post(':id/cancelar')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Cancela una clase (RF-32)' })
+  cancelar(
+    @EmprendimientoActual() emp: EmprendimientoDePeticion,
+    @Param('id') id: string,
+  ): Promise<Clase> {
+    return this.servicio.cancelar(emp.id, id);
+  }
+}

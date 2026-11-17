@@ -3,3 +3,7 @@ export * from './errores';
 export * from './auth';
 export * from './emprendimientos';
 export * from './movimientos';
+export * from './comunes';
+export * from './turnero';
+export * from './clases';
+export * from './ventas';

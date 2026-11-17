@@ -10,6 +10,7 @@ export interface DatosMovimiento {
   descripcion: string | null;
   medioPago: MedioPago | null;
   claveIdempotencia: string | null;
+  turnoId: string | null;
   alumnoId: string | null;
   tareaId: string | null;
   mesCorrespondiente: Date | null;

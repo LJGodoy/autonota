@@ -14,6 +14,9 @@ import { AuthModule } from './modules/auth/auth.module';
 import { EmprendimientosModule } from './modules/emprendimientos/emprendimientos.module';
 import { MovimientosModule } from './modules/movimientos/movimientos.module';
 import { EstadisticasModule } from './modules/estadisticas/estadisticas.module';
+import { TurneroModule } from './modules/turnero/turnero.module';
+import { ClasesModule } from './modules/clases/clases.module';
+import { VentasModule } from './modules/ventas/ventas.module';
 import { HealthController } from './modules/health/health.controller';
 
 @Module({
@@ -60,6 +63,9 @@ import { HealthController } from './modules/health/health.controller';
     EmprendimientosModule,
     MovimientosModule,
     EstadisticasModule,
+    TurneroModule,
+    ClasesModule,
+    VentasModule,
   ],
   controllers: [HealthController],
   providers: [
