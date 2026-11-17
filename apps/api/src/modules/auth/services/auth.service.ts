@@ -132,6 +132,10 @@ export class AuthService {
         texto: `Hola, ${usuario.nombre}.\n\nPara elegir una contraseña nueva, abrí este link (vence en 1 hora):\n${link}\n\nSi no lo pediste, ignorá este mail.`,
         html: `<p>Hola, ${escaparHtml(usuario.nombre)}.</p><p>Para elegir una contraseña nueva, abrí este link (vence en 1 hora):</p><p><a href="${link}">Elegir contraseña nueva</a></p><p>Si no lo pediste, ignorá este mail.</p>`,
       })
+      .then(() => {
+        // Sin el email del destinatario, para no registrar datos personales
+        this.logger.log(`Mail de recuperación enviado al usuario ${usuario.id}`);
+      })
       .catch((error: unknown) => {
         // CU-03, flujo alternativo: se registra y el usuario puede volver a pedirlo
         this.logger.error(`Falló el envío del mail de recuperación: ${String(error)}`);
