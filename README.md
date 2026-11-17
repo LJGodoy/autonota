@@ -4,19 +4,21 @@ Sistema web gratuito, en español y en pesos argentinos, para que trabajadores a
 turnos, clases o tareas y registren ingresos y gastos. Se ve como un cuaderno de trabajo escrito a lápiz.
 
 La especificación completa está en el documento de diseño (SDD v1.2). Este repositorio implementa
-las **fases 1 a 4**: base del proyecto, cuenta, sesión, emprendimientos, cuentas de demostración,
-publicación, y movimientos con estadísticas.
+la **primera versión completa** (fases 1 a 8): cuenta y emprendimientos, turnero, calendario de
+clases, ventas con anotaciones, movimientos y estadísticas, publicada y probada de punta a punta.
 
 **Demo publicada:** https://autonota-two.vercel.app (API: https://autonota-api.onrender.com/api/docs)
 
-| Fase | Contenido                                                                   | Estado     |
-| ---- | --------------------------------------------------------------------------- | ---------- |
-| 1    | Monorepo, tooling, esquema y migración, base de API y SPA, identidad visual | Hecha      |
-| 2    | Cuenta, sesión, emprendimientos, demo (RF-01 a RF-06, RF-08, RF-09)         | Hecha      |
-| 3    | Publicación en Vercel, Render y Neon                                        | Hecha      |
-| 4    | Movimientos y estadísticas (RF-07, RF-70 a RF-73, RNF-04, CU-12)            | Hecha      |
-| 5-7  | Turnero, calendario de clases, ventas                                       | Pendientes |
-| 8    | Playwright contra el entorno publicado, cierre                              | Pendiente  |
+| Fase | Contenido                                                                   | Estado |
+| ---- | --------------------------------------------------------------------------- | ------ |
+| 1    | Monorepo, tooling, esquema y migración, base de API y SPA, identidad visual | Hecha  |
+| 2    | Cuenta, sesión, emprendimientos, demo (RF-01 a RF-06, RF-08, RF-09)         | Hecha  |
+| 3    | Publicación en Vercel, Render y Neon                                        | Hecha  |
+| 4    | Movimientos y estadísticas (RF-07, RF-70 a RF-73, RNF-04, CU-12)            | Hecha  |
+| 5    | Turnero (RF-10 a RF-21; CU-06, 07, 08, 13, 16, 18)                          | Hecha  |
+| 6    | Calendario de clases (RF-30 a RF-38; CU-09, 10, 14, 18)                     | Hecha  |
+| 7    | Ventas y anotaciones (RF-50 a RF-56; CU-11)                                 | Hecha  |
+| 8    | Playwright contra el entorno publicado, cierre                              | Hecha  |
 
 ## Entorno publicado (ADR-010)
 
@@ -57,12 +59,19 @@ Alternativa con todo en contenedores (API y base): `docker compose up --build`.
 
 ## Comandos
 
-| Comando                 | Qué hace                                                                    |
-| ----------------------- | --------------------------------------------------------------------------- |
-| `pnpm verify`           | Tipos, ESLint, pruebas unitarias, de integración y build (antes de cada PR) |
-| `pnpm test`             | Pruebas unitarias (Jest en la API, Vitest en la SPA y en shared)            |
-| `pnpm test:integration` | Endpoints contra PostgreSQL real (base `autonota_test`, requiere Docker)    |
-| `pnpm format`           | Prettier sobre todo el repositorio                                          |
+| Comando                 | Qué hace                                                                            |
+| ----------------------- | ----------------------------------------------------------------------------------- |
+| `pnpm verify`           | Tipos, ESLint, pruebas unitarias, de integración y build (antes de cada PR)         |
+| `pnpm test`             | Pruebas unitarias (Jest en la API, Vitest en la SPA y en shared)                    |
+| `pnpm test:integration` | Endpoints contra PostgreSQL real (base `autonota_test`, requiere Docker)            |
+| `pnpm format`           | Prettier sobre todo el repositorio                                                  |
+| `pnpm e2e`              | Playwright: flujos críticos CU-01, 02, 06, 08, 09, 10 y 15 contra la demo publicada |
+
+Para las pruebas de punta a punta, instalar una vez el navegador con
+`pnpm --filter @autonota/e2e instalar-navegador`. Por defecto corren contra
+https://autonota-two.vercel.app; para otra URL, `E2E_URL=http://localhost:5173 pnpm e2e`.
+Crean una cuenta de demostración (hay un límite de 3 por hora por IP) y una cuenta propia que
+eliminan al terminar.
 
 Los commits siguen Conventional Commits (`feat(turnero): ...`), validados por commitlint; Husky corre
 Prettier y ESLint sobre los archivos modificados antes de cada commit.
@@ -70,10 +79,12 @@ Prettier y ESLint sobre los archivos modificados antes de cada commit.
 ## Estructura
 
 ```
-apps/api          API REST en NestJS (módulos auth, emprendimientos; código común en src/common)
+apps/api          API REST en NestJS: módulos auth, emprendimientos, movimientos, estadisticas,
+                  turnero, clases y ventas (ADR-005); código común en src/common
 apps/api/prisma   Esquema Prisma y migraciones (la inicial es el script SQL del SDD, Parte 3)
 apps/web          SPA en React (features/, components/, lib/, routes/)
 packages/shared   Esquemas Zod y tipos compartidos entre la SPA y la API (ADR-012)
+e2e               Pruebas de punta a punta con Playwright (Parte 6, sección 7)
 ```
 
 ## Versiones fijadas
@@ -81,7 +92,7 @@ packages/shared   Esquemas Zod y tipos compartidos entre la SPA y la API (ADR-01
 Fijadas en `pnpm-lock.yaml`: Node.js 22, pnpm 9.15, TypeScript 5.7.3, React 19.3.1, Vite 6.4.6,
 React Router 7.18.5, TanStack Query 5.107.1, React Hook Form 7.92.0, Tailwind CSS 4.3.5,
 NestJS 11.2.10, Prisma 6.19.3, Zod 3.25.76, nestjs-zod 5.6.0, PostgreSQL 16, Jest 29.7.0,
-Vitest 3.2.7, Sentry 9.47.2.
+Vitest 3.2.7, Sentry 9.47.2, Recharts 3.10, FullCalendar 6.1, Playwright 1.
 
 ## Supuestos de las fases 1 y 2
 
@@ -104,5 +115,17 @@ Decisiones tomadas donde el SDD no fijaba el detalle (criterio de la Parte 1, se
 4. **Filtro por mes del listado:** usa la condición equivalente a `mes_imputacion` (el mes correspondiente o el mes de la fecha), porque Prisma no modela la columna calculada. Las estadísticas sí consultan la columna y su índice.
 5. **Recharts 3**, porque el SDD no fija la versión y la 2 está deprecada.
 6. **Colores del gráfico:** café para ingresos y madera con rayado diagonal para gastos. Se distinguen con todo tipo de daltonismo, pero por diseño no alcanzan la saturación que pide el validador de paletas; la identidad del SDD es monocromática.
-7. **El formulario todavía no ofrece el pago de un alumno ni la venta vinculada a una tarea.** La API ya los acepta; la interfaz llega con las fases 6 y 7.
+7. **Pagos de alumnos y ventas vinculadas:** en un calendario de clases, «+ Pago» pide alumno y mes; la venta vinculada a una tarea se carga desde el detalle de la anotación.
 8. **El listado del mes muestra hasta 100 movimientos** y avisa si hay más.
+
+## Supuestos de las fases 5 a 8
+
+1. **Hora de Argentina fija en UTC-3** en la interfaz: Argentina no tiene horario de verano desde 2009. FullCalendar trabaja en "UTC" con la hora de Argentina (`apps/web/src/lib/zona.ts`), así la agenda no depende de la zona horaria del navegador. La API sí usa la zona `America/Argentina/Buenos_Aires`.
+2. **Un turno que pasa la medianoche** queda fuera de horario, aunque las franjas de los dos días sean contiguas.
+3. **Turnos afectados (CU-16):** se consideran los PROGRAMADOS desde el comienzo del día de hoy en Argentina. El detalle del 409 trae un renglón legible por turno (`vie 20/11 10:00 · Ana Gómez`) con el id del turno en `field`.
+4. **Realizar con cobro:** si la `Idempotency-Key` ya existe, el turno se marca realizado igual pero no se crea otro cobro.
+5. **Copiar semana:** responde `{ creados, omitidos }` (turnos) y `{ creadas, omitidas }` (clases) con los registros creados completos, y cada omitido con su motivo: `CLIENTE_INACTIVO`, `FUERA_DE_HORARIO`, `EN_BLOQUEO`, `TURNO_MISMO_INICIO` o `SIN_ALUMNOS`. `semanaOrigen` debe ser un lunes.
+6. **Clientes y alumnos comparten servicio** (`common/personas`), con nombre anónimo distinto. Al anonimizar también se dan de baja. Se puede reactivar con `PATCH { activo: true }`.
+7. **Cancelar una clase ya cancelada** responde 409 `ESTADO_INVALIDO`, igual que un turno.
+8. **Tareas:** el orden por prioridad pone ALTA primero y, a igual prioridad, las más nuevas. El detalle trae `totalVendidoCentavos`. En el tablero, la casilla alterna entre Pendiente y Realizada; el selector permite cualquier estado.
+9. **Pruebas de punta a punta:** comparten una cuenta de demostración por el límite de 3 demos por hora por IP, y crean una cuenta propia para CU-01 y CU-02 que eliminan al terminar.

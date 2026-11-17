@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
 import { Boton } from '../../components/Boton';
 import { Campo } from '../../components/Campo';
 import { Dialogo } from '../../components/Dialogo';
@@ -12,7 +11,6 @@ import { eliminarCuenta } from './api';
 /** Datos de la cuenta, cierre de sesión y eliminación de la cuenta (CU-17) */
 export function PantallaCuenta() {
   const { usuario, cerrar, olvidar } = useSesion();
-  const navegar = useNavigate();
   const [dialogo, setDialogo] = useState(false);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -22,7 +20,6 @@ export function PantallaCuenta() {
 
   async function alCerrarSesion() {
     await cerrar();
-    navegar('/');
   }
 
   async function alEliminar() {
@@ -35,8 +32,8 @@ export function PantallaCuenta() {
     try {
       // Las cuentas de demostración no tienen contraseña conocida: la API no la verifica
       await eliminarCuenta(esDemo ? 'demo' : password);
-      olvidar();
-      navegar('/');
+      // Salida voluntaria: el layout privado lleva al inicio
+      olvidar(true);
     } catch (e) {
       setError(e instanceof ErrorApi ? e.message : 'No pudimos eliminar la cuenta.');
       setBorrando(false);

@@ -37,9 +37,10 @@ export function LayoutPublico() {
 
 /** Pantallas que requieren sesión */
 export function LayoutApp() {
-  const { estado } = useSesion();
+  const { estado, salidaVoluntaria } = useSesion();
   if (estado === 'cargando') return <Cargando texto="Abriendo tu cuaderno…" />;
-  if (estado === 'anonimo') return <Navigate to="/ingresar" replace />;
+  // Si la sesión venció, al ingreso; si el usuario salió por su cuenta, al inicio
+  if (estado === 'anonimo') return <Navigate to={salidaVoluntaria ? '/' : '/ingresar'} replace />;
 
   const claseEnlace = ({ isActive }: { isActive: boolean }) =>
     `whitespace-nowrap font-bold ${isActive ? 'text-cafe no-underline' : ''}`;

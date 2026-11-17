@@ -1,0 +1,15 @@
+{
+  "name": "@autonota/e2e",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pruebas de punta a punta de los flujos críticos contra el entorno publicado (Parte 6, sección 7)",
+  "scripts": {
+    "e2e": "playwright test",
+    "instalar-navegador": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1",
+    "@types/node": "^22.10.7",
+    "typescript": "~5.7.2"
+  }
+}

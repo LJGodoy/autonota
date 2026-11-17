@@ -17,6 +17,7 @@
     "verify": "pnpm typecheck && pnpm lint && pnpm test && pnpm test:integration && pnpm build",
     "format": "prettier --write .",
     "seed": "pnpm --filter @autonota/api seed",
+    "e2e": "pnpm --filter @autonota/e2e e2e",
     "prepare": "husky"
   },
   "devDependencies": {

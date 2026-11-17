@@ -16,10 +16,15 @@ type EstadoSesion = 'cargando' | 'autenticado' | 'anonimo';
 interface ContextoSesion {
   estado: EstadoSesion;
   usuario: Usuario | null;
+  /**
+   * true si el usuario salió por su cuenta (cerró sesión o eliminó la cuenta): las pantallas
+   * privadas llevan al inicio. false si la sesión venció: llevan al ingreso (CU-02).
+   */
+  salidaVoluntaria: boolean;
   iniciar: (sesion: CuerpoSesion) => void;
   cerrar: () => Promise<void>;
   /** Borra la sesión local sin llamar a la API (por ejemplo, después de eliminar la cuenta) */
-  olvidar: () => void;
+  olvidar: (voluntaria?: boolean) => void;
 }
 
 const Contexto = createContext<ContextoSesion | null>(null);
@@ -27,9 +32,11 @@ const Contexto = createContext<ContextoSesion | null>(null);
 export function ProveedorSesion({ children }: { children: ReactNode }) {
   const [estado, setEstado] = useState<EstadoSesion>('cargando');
   const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [salidaVoluntaria, setSalidaVoluntaria] = useState(false);
 
-  const olvidar = useCallback(() => {
+  const olvidar = useCallback((voluntaria = false) => {
     establecerAccessToken(null);
+    setSalidaVoluntaria(voluntaria);
     setUsuario(null);
     setEstado('anonimo');
     queryClient.clear();
@@ -59,11 +66,12 @@ export function ProveedorSesion({ children }: { children: ReactNode }) {
     };
   }, [olvidar]);
 
-  useEffect(() => alTerminarSesion(olvidar), [olvidar]);
+  useEffect(() => alTerminarSesion(() => olvidar(false)), [olvidar]);
 
   const iniciar = useCallback((sesion: CuerpoSesion) => {
     queryClient.clear();
     establecerAccessToken(sesion.accessToken);
+    setSalidaVoluntaria(false);
     setUsuario(sesion.usuario);
     setEstado('autenticado');
   }, []);
@@ -71,14 +79,16 @@ export function ProveedorSesion({ children }: { children: ReactNode }) {
   const cerrar = useCallback(async () => {
     try {
       await api('/auth/logout', { method: 'POST' });
+    } catch {
+      /* aunque falle la API, la sesión local se borra igual */
     } finally {
-      olvidar();
+      olvidar(true);
     }
   }, [olvidar]);
 
   const valor = useMemo(
-    () => ({ estado, usuario, iniciar, cerrar, olvidar }),
-    [estado, usuario, iniciar, cerrar, olvidar],
+    () => ({ estado, usuario, salidaVoluntaria, iniciar, cerrar, olvidar }),
+    [estado, usuario, salidaVoluntaria, iniciar, cerrar, olvidar],
   );
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
 }
