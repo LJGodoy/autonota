@@ -1,87 +1,182 @@
 @import 'tailwindcss';
 
-/* Identidad visual de AutoNota (Parte 6, sección 5.3): un cuaderno de trabajo escrito a lápiz.
-   Los tokens se cambian en un solo lugar. Kraft y renglón nunca se usan para texto. */
+/* Identidad visual de AutoNota: el cuaderno escolar argentino (hoja cuadriculada, birome azul,
+   resaltador) usado como herramienta de trabajo. Los tokens se cambian en un solo lugar.
+   Cuadrícula, margen y resaltador son decorativos: nunca llevan texto propio. */
 @theme {
-  --color-papel: #fbf8f1;
-  --color-kraft-claro: #f3e9d7;
-  --color-grafito: #2b2724;
-  --color-lapiz: #5e5852;
-  --color-cafe: #4a3222;
-  --color-madera: #8b5e3c;
-  --color-kraft: #c8a27a;
-  --color-renglon: #ece3d3;
+  /* Hoja y tinta */
+  --color-hoja: #fcfdff;
+  --color-celeste: #edf2fa;
+  --color-tinta: #1b2136;
+  --color-lapiz: #4b5470;
+  --color-linea: #bcc8dc;
+  --color-cuadricula: #dbe5f4;
 
-  --font-mano: 'Caveat', 'Segoe Print', cursive;
+  /* Birome azul: acciones, títulos escritos a mano e ingresos */
+  --color-birome: #2539b0;
+  --color-birome-oscura: #1a2a85;
+
+  /* Rojo de cuaderno: errores y gastos. El margen es solo decorativo. */
+  --color-rojo: #b42318;
+  --color-margen: #ec8a8f;
+
+  /* Resaltador amarillo: hoy, pestaña activa, selección */
+  --color-resaltador: #fff06e;
+
+  /* Tapas: una por tipo de negocio, más la tapa general de la cuenta */
+  --color-tapa-general: #23284a;
+  --color-tapa-turnero: #a3262c;
+  --color-tapa-clases: #1d6447;
+  --color-tapa-ventas: #1f4b96;
+  --color-tapa: var(--tapa-actual, var(--color-tapa-general));
+
+  --font-mano: 'Kalam', 'Segoe Print', cursive;
   --font-sans: 'Atkinson Hyperlegible', system-ui, sans-serif;
 
-  /* Esquinas irregulares, como una línea dibujada a mano */
-  --radius-trazo: 255px 14px 225px 14px / 14px 225px 14px 255px;
-  --radius-trazo-2: 14px 225px 14px 255px / 255px 14px 225px 14px;
+  --radius-trazo: 6px;
+  --radius-trazo-2: 10px;
 
-  --shadow-nota: 2px 3px 0 rgb(43 39 36 / 0.12);
+  --shadow-nota: 0 1px 2px rgb(27 33 54 / 0.06), 0 6px 16px -4px rgb(27 33 54 / 0.12);
+}
+
+/* La tapa cambia con el emprendimiento abierto (lo marca LayoutEmprendimiento) */
+:root[data-tapa='TURNERO'] {
+  --tapa-actual: var(--color-tapa-turnero);
+}
+:root[data-tapa='CLASES'] {
+  --tapa-actual: var(--color-tapa-clases);
+}
+:root[data-tapa='VENTAS'] {
+  --tapa-actual: var(--color-tapa-ventas);
 }
 
 @layer base {
   html {
-    background-color: var(--color-papel);
-    color: var(--color-grafito);
+    background-color: var(--color-hoja);
+    color: var(--color-tinta);
     font-family: var(--font-sans);
     -webkit-text-size-adjust: 100%;
+    accent-color: var(--color-birome);
+    caret-color: var(--color-birome);
+    scrollbar-color: var(--color-linea) transparent;
   }
   body {
     min-height: 100dvh;
   }
+  ::selection {
+    background-color: var(--color-resaltador);
+    color: var(--color-tinta);
+  }
   :focus-visible {
-    outline: 3px solid var(--color-madera);
+    outline: 3px solid var(--color-birome);
     outline-offset: 2px;
   }
   a {
-    color: var(--color-madera);
+    color: var(--color-birome);
     text-decoration: underline;
-    text-decoration-thickness: 2px;
+    text-decoration-thickness: 1.5px;
     text-underline-offset: 3px;
+  }
+  a:hover {
+    color: var(--color-birome-oscura);
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  .font-mano {
+    letter-spacing: -0.01em;
   }
 }
 
 @layer components {
-  /* Renglones de cuaderno con línea de margen en kraft: listas y agenda */
+  /* Hoja cuadriculada de 5 mm con la línea roja de margen: listas, agenda y tablas */
   .fondo-cuaderno {
-    background-color: var(--color-papel);
+    background-color: var(--color-hoja);
     background-image:
       linear-gradient(
         to right,
         transparent 1.75rem,
-        var(--color-kraft) 1.75rem,
-        var(--color-kraft) calc(1.75rem + 2px),
-        transparent calc(1.75rem + 2px)
+        var(--color-margen) 1.75rem,
+        var(--color-margen) calc(1.75rem + 1.5px),
+        transparent calc(1.75rem + 1.5px)
       ),
-      repeating-linear-gradient(
-        to bottom,
-        transparent 0,
-        transparent calc(2rem - 1px),
-        var(--color-renglon) calc(2rem - 1px),
-        var(--color-renglon) 2rem
-      );
+      linear-gradient(to right, var(--color-cuadricula) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--color-cuadricula) 1px, transparent 1px);
+    background-size:
+      100% 100%,
+      1.25rem 1.25rem,
+      1.25rem 1.25rem;
   }
+
+  /* Pasada de resaltador: bordes algo torcidos, como un trazo hecho a mano */
+  .resaltado {
+    background-image: linear-gradient(
+      100deg,
+      transparent 0.15em,
+      color-mix(in srgb, var(--color-resaltador) 88%, transparent) 0.3em,
+      var(--color-resaltador) 50%,
+      color-mix(in srgb, var(--color-resaltador) 80%, transparent) calc(100% - 0.3em),
+      transparent calc(100% - 0.1em)
+    );
+    background-repeat: no-repeat;
+    background-size: 100% 72%;
+    background-position: 0 70%;
+    border-radius: 0.2em 0.6em 0.25em 0.5em;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  /* Total al pie: la cuenta hecha a mano, con doble raya debajo */
+  .total-al-pie {
+    display: inline-block;
+    border-bottom: 3px double currentColor;
+    padding-bottom: 1px;
+  }
+
   .montos {
     font-variant-numeric: tabular-nums;
   }
 }
 
-/* Calendario (FullCalendar) con la identidad del cuaderno */
+/* Campos escritos sobre el renglón (inputs, selects y textareas con línea inferior):
+   mismos estados en toda la app. Fuera de capa para ganarle al color de borde utilitario. */
+:where(input:not([type='checkbox'], [type='radio']), select, textarea).border-b-2 {
+  border-radius: 4px 4px 0 0;
+  transition:
+    border-color 150ms ease-out,
+    background-color 150ms ease-out;
+}
+:where(input:not([type='checkbox'], [type='radio']), select, textarea).border-b-2:not(
+    [aria-invalid='true']
+  ):hover,
+:where(input:not([type='checkbox'], [type='radio']), select, textarea).border-b-2:not(
+    [aria-invalid='true']
+  ):focus {
+  border-color: var(--color-birome);
+}
+:where(input:not([type='checkbox'], [type='radio']), select, textarea).border-b-2:focus {
+  background-color: color-mix(in srgb, var(--color-celeste) 70%, transparent);
+}
+:where(input, select, textarea):disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Calendario (FullCalendar) sobre hoja cuadriculada */
 .calendario-cuaderno .fc {
-  --fc-border-color: var(--color-renglon);
-  --fc-page-bg-color: var(--color-papel);
-  --fc-neutral-bg-color: var(--color-kraft-claro);
-  --fc-today-bg-color: color-mix(in srgb, var(--color-kraft-claro) 60%, transparent);
-  --fc-now-indicator-color: var(--color-madera);
-  --fc-non-business-color: color-mix(in srgb, var(--color-renglon) 55%, transparent);
-  --fc-bg-event-color: var(--color-kraft);
+  --fc-border-color: var(--color-cuadricula);
+  --fc-page-bg-color: var(--color-hoja);
+  --fc-neutral-bg-color: var(--color-celeste);
+  --fc-today-bg-color: color-mix(in srgb, var(--color-resaltador) 24%, transparent);
+  --fc-now-indicator-color: var(--color-rojo);
+  --fc-non-business-color: color-mix(in srgb, var(--color-celeste) 80%, transparent);
+  --fc-bg-event-color: var(--color-linea);
   --fc-bg-event-opacity: 0.35;
-  --fc-event-bg-color: var(--color-papel);
-  --fc-event-border-color: var(--color-grafito);
-  --fc-event-text-color: var(--color-grafito);
+  --fc-event-bg-color: var(--color-hoja);
+  --fc-event-border-color: var(--color-birome);
+  --fc-event-text-color: var(--color-tinta);
   font-family: var(--font-sans);
   font-size: 0.875rem;
 }
@@ -91,29 +186,43 @@
 }
 .calendario-cuaderno .fc .fc-toolbar-title {
   font-family: var(--font-mano);
-  font-size: 1.75rem;
+  font-size: 1.625rem;
   font-weight: 700;
-  color: var(--color-cafe);
+  color: var(--color-birome);
 }
 .calendario-cuaderno .fc .fc-toolbar-title::first-letter {
   text-transform: uppercase;
 }
 .calendario-cuaderno .fc .fc-button {
-  background: var(--color-papel);
-  border: 2px solid var(--color-grafito);
-  color: var(--color-grafito);
+  min-height: 2.5rem;
+  background: var(--color-hoja);
+  border: 1px solid var(--color-linea);
+  color: var(--color-tinta);
   font-weight: 700;
-  border-radius: 10px 4px 10px 4px;
+  border-radius: var(--radius-trazo);
   text-transform: capitalize;
+  box-shadow: none;
+  transition:
+    background-color 150ms ease-out,
+    color 150ms ease-out;
 }
-.calendario-cuaderno .fc .fc-button:hover,
-.calendario-cuaderno .fc .fc-button-active {
-  background: var(--color-cafe) !important;
-  color: var(--color-papel) !important;
-  border-color: var(--color-grafito) !important;
+.calendario-cuaderno .fc .fc-button:hover {
+  background: var(--color-celeste);
+  color: var(--color-tinta);
+}
+.calendario-cuaderno .fc .fc-button-active,
+.calendario-cuaderno .fc .fc-button-active:hover {
+  background: var(--color-birome) !important;
+  color: var(--color-hoja) !important;
+  border-color: var(--color-birome) !important;
+}
+.calendario-cuaderno .fc .fc-button:disabled {
+  opacity: 0.55;
 }
 .calendario-cuaderno .fc .fc-button:focus-visible {
-  outline: 3px solid var(--color-madera);
+  outline: 3px solid var(--color-birome);
+  outline-offset: 2px;
+  box-shadow: none;
 }
 .calendario-cuaderno .fc .fc-col-header-cell-cushion,
 .calendario-cuaderno .fc .fc-daygrid-day-number {
@@ -121,30 +230,40 @@
   text-decoration: none;
   text-transform: capitalize;
 }
+.calendario-cuaderno .fc .fc-day-today .fc-col-header-cell-cushion,
+.calendario-cuaderno .fc .fc-day-today .fc-daygrid-day-number {
+  color: var(--color-tinta);
+  font-weight: 700;
+}
+.calendario-cuaderno .fc .fc-timegrid-slot-label-cushion {
+  color: var(--color-lapiz);
+  font-variant-numeric: tabular-nums;
+}
 .calendario-cuaderno .fc-event {
-  border-width: 2px;
-  border-radius: 8px 3px 8px 3px;
+  border-width: 1.5px;
+  border-radius: 4px;
   cursor: pointer;
 }
-/* Estados por forma y no solo por color (Parte 6, sección 5.3) */
+/* Estados por forma y no solo por color */
 .calendario-cuaderno .evento-realizado {
-  background: var(--color-cafe);
-  border-color: var(--color-cafe);
-  --fc-event-text-color: var(--color-papel);
+  background: var(--color-birome);
+  border-color: var(--color-birome);
+  --fc-event-text-color: var(--color-hoja);
 }
 .calendario-cuaderno .evento-realizado .fc-event-main {
-  color: var(--color-papel);
+  color: var(--color-hoja);
 }
 .calendario-cuaderno .evento-ausente {
   border-style: dotted;
-  border-color: var(--color-madera);
+  border-width: 2px;
+  border-color: var(--color-rojo);
 }
 .calendario-cuaderno .evento-ausente .fc-event-main {
-  color: var(--color-madera);
+  color: var(--color-rojo);
 }
 .calendario-cuaderno .evento-cancelado {
   border-color: var(--color-lapiz);
-  opacity: 0.75;
+  opacity: 0.8;
 }
 .calendario-cuaderno .evento-cancelado .fc-event-main {
   color: var(--color-lapiz);

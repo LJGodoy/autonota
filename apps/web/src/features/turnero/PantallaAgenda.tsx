@@ -86,13 +86,13 @@ export function PantallaAgenda() {
         )}
       </div>
       {franjas.data?.length === 0 && (
-        <p className="rounded-trazo-2 border-2 border-dashed border-madera bg-kraft-claro p-3 text-sm">
+        <p className="rounded-trazo-2 border border-linea bg-celeste p-3 text-sm">
           Todavía no cargaste tus horarios de atención. Cargalos en la pestaña Horarios para poder
           dar turnos.
         </p>
       )}
       {aviso && (
-        <p role="alert" className="font-bold text-cafe">
+        <p role="alert" className="font-bold text-rojo">
           ✗ {aviso}
         </p>
       )}

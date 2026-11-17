@@ -60,7 +60,7 @@ export function GestorBloqueos({ eid }: { eid: string }) {
 
   return (
     <Tarjeta className="flex flex-col gap-4">
-      <h2 className="font-mano text-3xl font-bold text-cafe">Días bloqueados</h2>
+      <h2 className="font-mano text-3xl font-bold text-birome">Días bloqueados</h2>
       <div className="grid gap-3 sm:grid-cols-2">
         <Campo
           etiqueta={diaCompleto ? 'Desde el día' : 'Día'}
@@ -103,7 +103,7 @@ export function GestorBloqueos({ eid }: { eid: string }) {
         onChange={(e) => setMotivo(e.target.value)}
       />
       {error && (
-        <p role="alert" className="font-bold text-cafe">
+        <p role="alert" className="font-bold text-rojo">
           ✗ {error}
         </p>
       )}
@@ -121,7 +121,7 @@ export function GestorBloqueos({ eid }: { eid: string }) {
           {lista.data.map((b) => (
             <li
               key={b.id}
-              className="flex flex-wrap items-center gap-2 border-b border-renglon py-2"
+              className="flex flex-wrap items-center gap-2 border-b border-cuadricula py-2"
             >
               <span className="flex-1">
                 {formatearFechaHora(b.inicio)} → {formatearFechaHora(b.fin)}

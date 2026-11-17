@@ -34,7 +34,7 @@ interface Props {
 export function Calendario(props: Props) {
   const esCelular = typeof window !== 'undefined' && window.innerWidth < 640;
   return (
-    <div className="calendario-cuaderno rounded-trazo-2 border-2 border-grafito bg-papel p-2">
+    <div className="calendario-cuaderno rounded-trazo-2 border border-linea bg-hoja p-2">
       <FullCalendar
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         locale={esLocale}

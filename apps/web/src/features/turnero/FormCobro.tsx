@@ -98,7 +98,7 @@ export function FormCobro({ eid, turno, realizar, alCerrar }: Props) {
               id="medio-cobro"
               value={medio}
               onChange={(e) => setMedio(e.target.value as MedioPago | '')}
-              className="min-h-11 border-0 border-b-2 border-grafito bg-transparent px-1 focus:border-madera"
+              className="min-h-11 border-0 border-b-2 border-tinta bg-transparent px-1 focus:border-birome"
             >
               <option value="">Sin indicar</option>
               {MEDIOS_PAGO.map((m) => (
@@ -117,7 +117,7 @@ export function FormCobro({ eid, turno, realizar, alCerrar }: Props) {
         </div>
       )}
       {error && (
-        <p role="alert" className="font-bold text-cafe">
+        <p role="alert" className="font-bold text-rojo">
           ✗ {error}
         </p>
       )}

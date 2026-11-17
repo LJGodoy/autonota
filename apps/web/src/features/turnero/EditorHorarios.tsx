@@ -58,14 +58,17 @@ export function EditorHorarios({ eid }: { eid: string }) {
 
   return (
     <Tarjeta className="flex flex-col gap-4">
-      <h2 className="font-mano text-3xl font-bold text-cafe">Horarios de atención</h2>
+      <h2 className="font-mano text-3xl font-bold text-birome">Horarios de atención</h2>
       <p className="text-sm text-lapiz">
         Podés cargar varias franjas por día, por ejemplo de 9 a 13 y de 16 a 20. Si son seguidas (9
         a 13 y 13 a 17) cuentan como una sola.
       </p>
       <ul className="flex flex-col gap-3">
         {[1, 2, 3, 4, 5, 6, 7].map((dia) => (
-          <li key={dia} className="flex flex-wrap items-center gap-2 border-b border-renglon pb-3">
+          <li
+            key={dia}
+            className="flex flex-wrap items-center gap-2 border-b border-cuadricula pb-3"
+          >
             <span className="w-24 font-bold">{NOMBRE_DIA[dia]}</span>
             <div className="flex flex-1 flex-col gap-2">
               {franjas.map((f, i) =>
@@ -76,7 +79,7 @@ export function EditorHorarios({ eid }: { eid: string }) {
                       aria-label={`${NOMBRE_DIA[dia]}, desde`}
                       value={f.horaInicio}
                       onChange={(e) => cambiar(i, 'horaInicio', e.target.value)}
-                      className="border-0 border-b-2 border-grafito bg-transparent"
+                      className="border-0 border-b-2 border-tinta bg-transparent"
                     />
                     <span>a</span>
                     <input
@@ -84,7 +87,7 @@ export function EditorHorarios({ eid }: { eid: string }) {
                       aria-label={`${NOMBRE_DIA[dia]}, hasta`}
                       value={f.horaFin}
                       onChange={(e) => cambiar(i, 'horaFin', e.target.value)}
-                      className="border-0 border-b-2 border-grafito bg-transparent"
+                      className="border-0 border-b-2 border-tinta bg-transparent"
                     />
                     <Boton
                       variante="texto"
@@ -117,12 +120,12 @@ export function EditorHorarios({ eid }: { eid: string }) {
         ))}
       </ul>
       {error && (
-        <p role="alert" className="font-bold text-cafe">
+        <p role="alert" className="font-bold text-rojo">
           ✗ {error}
         </p>
       )}
       {ok && (
-        <p role="status" className="font-bold text-cafe">
+        <p role="status" className="font-bold text-birome">
           ✓ Horarios guardados
         </p>
       )}

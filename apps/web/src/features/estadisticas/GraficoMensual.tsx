@@ -12,14 +12,16 @@ import type { Estadisticas } from '@autonota/shared';
 import { formatearPesos } from '../../lib/dinero';
 import { formatearMes, formatearMesCorto } from '../../lib/meses';
 
-// Paleta validada contra el papel (#FBF8F1): café e madera se distinguen con todo tipo de
-// daltonismo (ΔE 17) y superan 3:1 de contraste. Los gastos llevan además rayado diagonal,
-// para no depender solo del color (Parte 6, sección 5.3).
-const CAFE = '#4A3222';
-const MADERA = '#8B5E3C';
-const GRAFITO = '#2B2724';
-const LAPIZ = '#5E5852';
-const RENGLON = '#ECE3D3';
+// Paleta de birome sobre la hoja (#FCFDFF): azul para ingresos y rojo para gastos, que se
+// distinguen también con daltonismo rojo-verde por luminosidad. Los gastos llevan además rayado
+// diagonal, para no depender solo del color.
+const HOJA = '#FCFDFF';
+const BIROME = '#2539B0';
+const ROJO = '#B42318';
+const TINTA = '#1B2136';
+const LAPIZ = '#4B5470';
+const LINEA = '#BCC8DC';
+const CUADRICULA = '#DBE5F4';
 
 const compacto = new Intl.NumberFormat('es-AR', { notation: 'compact', maximumFractionDigits: 1 });
 
@@ -60,16 +62,16 @@ export function GraficoMensual({ datos, etiquetaIngresos, etiquetaGastos, alEleg
                 patternUnits="userSpaceOnUse"
                 patternTransform="rotate(45)"
               >
-                <rect width="6" height="6" fill={MADERA} />
-                <line x1="0" y1="0" x2="0" y2="6" stroke="#FBF8F1" strokeWidth="2" />
+                <rect width="6" height="6" fill={ROJO} />
+                <line x1="0" y1="0" x2="0" y2="6" stroke={HOJA} strokeWidth="2" />
               </pattern>
             </defs>
-            <CartesianGrid vertical={false} stroke={RENGLON} />
+            <CartesianGrid vertical={false} stroke={CUADRICULA} />
             <XAxis
               dataKey="mes"
               tickFormatter={formatearMesCorto}
               tick={{ fill: LAPIZ, fontSize: 12 }}
-              axisLine={{ stroke: GRAFITO }}
+              axisLine={{ stroke: TINTA }}
               tickLine={false}
             />
             <YAxis
@@ -80,28 +82,29 @@ export function GraficoMensual({ datos, etiquetaIngresos, etiquetaGastos, alEleg
               width={64}
             />
             <Tooltip
-              cursor={{ fill: RENGLON, opacity: 0.6 }}
+              cursor={{ fill: CUADRICULA, opacity: 0.7 }}
               formatter={(valor, nombre) => [
                 formatearPesos(Math.round(Number(valor) * 100)),
                 String(nombre),
               ]}
               labelFormatter={(mes) => formatearMes(String(mes))}
               contentStyle={{
-                background: '#FBF8F1',
-                border: `2px solid ${GRAFITO}`,
-                borderRadius: 10,
+                background: HOJA,
+                border: `1px solid ${LINEA}`,
+                borderRadius: 6,
+                boxShadow: '0 6px 16px -4px rgb(27 33 54 / 0.15)',
                 fontFamily: 'Atkinson Hyperlegible',
               }}
-              labelStyle={{ color: GRAFITO, fontWeight: 700 }}
-              itemStyle={{ color: GRAFITO }}
+              labelStyle={{ color: TINTA, fontWeight: 700 }}
+              itemStyle={{ color: TINTA }}
             />
-            <Legend wrapperStyle={{ color: GRAFITO, fontSize: 14 }} iconType="square" />
+            <Legend wrapperStyle={{ color: TINTA, fontSize: 14 }} iconType="square" />
             <Bar
               dataKey="ingresos"
               name={etiquetaIngresos}
-              fill={CAFE}
+              fill={BIROME}
               radius={[4, 4, 0, 0]}
-              stroke="#FBF8F1"
+              stroke={HOJA}
               strokeWidth={1}
               cursor="pointer"
             />
@@ -110,7 +113,7 @@ export function GraficoMensual({ datos, etiquetaIngresos, etiquetaGastos, alEleg
               name={etiquetaGastos}
               fill="url(#rayado-gastos)"
               radius={[4, 4, 0, 0]}
-              stroke={MADERA}
+              stroke={ROJO}
               strokeWidth={1}
               cursor="pointer"
             />

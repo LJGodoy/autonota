@@ -25,7 +25,7 @@ export function Campo({ etiqueta, error, ayuda, id, className = '', ref, ...rest
         id={idCampo}
         aria-invalid={error ? true : undefined}
         aria-describedby={descripciones || undefined}
-        className={`w-full border-0 border-b-2 bg-transparent px-1 py-2 text-base text-grafito outline-none placeholder:text-lapiz/70 focus:border-madera ${error ? 'border-cafe border-dashed' : 'border-grafito'}`}
+        className={`w-full rounded-t-[4px] border-0 border-b-2 bg-transparent px-1.5 py-2 text-base text-tinta outline-none transition-colors duration-150 placeholder:text-lapiz/80 hover:border-birome focus:border-birome focus:bg-celeste/70 ${error ? 'border-dashed border-rojo' : 'border-tinta'}`}
         {...resto}
       />
       {ayuda && (
@@ -34,7 +34,7 @@ export function Campo({ etiqueta, error, ayuda, id, className = '', ref, ...rest
         </p>
       )}
       {error && (
-        <p id={idError} role="alert" className="text-sm font-bold text-cafe">
+        <p id={idError} role="alert" className="text-sm font-bold text-rojo">
           ✗ {error}
         </p>
       )}

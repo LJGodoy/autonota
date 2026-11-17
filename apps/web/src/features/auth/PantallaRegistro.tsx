@@ -34,7 +34,7 @@ export function PantallaRegistro() {
 
   return (
     <section className="mx-auto flex max-w-sm flex-col gap-6 py-6">
-      <h1 className="font-mano text-5xl font-bold text-cafe">Crear cuenta</h1>
+      <h1 className="font-mano text-5xl font-bold text-birome">Crear cuenta</h1>
       <form onSubmit={alEnviar} noValidate className="flex flex-col gap-5">
         <Campo
           etiqueta="Tu nombre"
@@ -69,7 +69,7 @@ export function PantallaRegistro() {
           .
         </CasillaVerificacion>
         {errorGeneral && (
-          <p role="alert" className="font-bold text-cafe">
+          <p role="alert" className="font-bold text-rojo">
             ✗ {errorGeneral}
           </p>
         )}

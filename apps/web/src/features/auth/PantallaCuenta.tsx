@@ -42,7 +42,7 @@ export function PantallaCuenta() {
 
   return (
     <section className="flex flex-col gap-6 py-2">
-      <h1 className="font-mano text-5xl font-bold text-cafe">Mi cuenta</h1>
+      <h1 className="font-mano text-5xl font-bold text-birome">Mi cuenta</h1>
       <Tarjeta className="flex flex-col gap-1">
         <p className="font-bold">{usuario.nombre}</p>
         {!esDemo && <p className="text-lapiz">{usuario.email}</p>}
@@ -59,7 +59,7 @@ export function PantallaCuenta() {
       </div>
 
       <Tarjeta className="flex flex-col items-start gap-3 border-dashed">
-        <h2 className="font-mano text-3xl font-bold text-cafe">Eliminar la cuenta</h2>
+        <h2 className="font-mano text-3xl font-bold text-birome">Eliminar la cuenta</h2>
         <p className="text-lapiz">
           Se borran para siempre tu cuenta y todos tus emprendimientos, con sus clientes, alumnos,
           turnos, clases, anotaciones y movimientos. No se puede deshacer.
@@ -83,7 +83,7 @@ export function PantallaCuenta() {
           />
         )}
         {error && (
-          <p role="alert" className="font-bold text-cafe">
+          <p role="alert" className="font-bold text-rojo">
             ✗ {error}
           </p>
         )}

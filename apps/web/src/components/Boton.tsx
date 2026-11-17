@@ -3,11 +3,13 @@ import type { ButtonHTMLAttributes } from 'react';
 type Variante = 'primario' | 'secundario' | 'peligro' | 'texto';
 
 const ESTILOS: Record<Variante, string> = {
-  primario: 'bg-cafe text-papel border-grafito hover:bg-grafito',
-  secundario: 'bg-papel text-grafito border-grafito hover:bg-kraft-claro',
-  peligro: 'bg-papel text-cafe border-cafe border-dashed hover:bg-kraft-claro',
+  primario:
+    'border-birome bg-birome text-hoja shadow-nota hover:border-birome-oscura hover:bg-birome-oscura active:translate-y-px',
+  secundario:
+    'border-linea bg-hoja text-tinta hover:border-tinta hover:bg-celeste active:translate-y-px',
+  peligro: 'border-rojo bg-hoja text-rojo hover:bg-rojo hover:text-hoja active:translate-y-px',
   texto:
-    'bg-transparent text-madera border-transparent underline underline-offset-4 hover:text-cafe',
+    'border-transparent bg-transparent text-birome underline decoration-1 underline-offset-4 hover:bg-celeste hover:text-birome-oscura',
 };
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -15,7 +17,7 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   cargando?: boolean;
 }
 
-/** Botón con borde de 2 px en grafito y esquinas irregulares (Parte 6, sección 5.3) */
+/** Botón de la identidad de cuaderno: birome azul para la acción principal, línea fina para el resto */
 export function Boton({
   variante = 'primario',
   cargando = false,
@@ -30,7 +32,7 @@ export function Boton({
       {...resto}
       disabled={disabled || cargando}
       aria-busy={cargando || undefined}
-      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-trazo border-2 px-5 py-2 font-sans font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${ESTILOS[variante]} ${className}`}
+      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-trazo border px-4 py-2 font-sans font-bold transition-[background-color,color,border-color,transform] duration-150 ease-out disabled:cursor-not-allowed disabled:opacity-55 disabled:shadow-none ${ESTILOS[variante]} ${className}`}
     >
       {cargando ? 'Guardando…' : children}
     </button>

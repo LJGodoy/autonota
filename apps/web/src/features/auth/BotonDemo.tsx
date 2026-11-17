@@ -25,7 +25,7 @@ export function BotonDemo() {
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col items-start gap-2">
       <Boton variante="secundario" onClick={alProbar} disabled={cargando}>
         {cargando ? 'Preparando la demo…' : 'Probar demo'}
       </Boton>
@@ -35,7 +35,7 @@ export function BotonDemo() {
         48 horas.
       </p>
       {error && (
-        <p role="alert" className="text-sm font-bold text-cafe">
+        <p role="alert" className="text-sm font-bold text-rojo">
           ✗ {error}
         </p>
       )}

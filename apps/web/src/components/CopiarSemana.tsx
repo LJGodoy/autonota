@@ -47,7 +47,7 @@ export function CopiarSemana({ lunesDestino, copiar, nombre }: Props) {
         Copiar semana anterior
       </Boton>
       {error && (
-        <p role="alert" className="w-full font-bold text-cafe">
+        <p role="alert" className="w-full font-bold text-rojo">
           ✗ {error}
         </p>
       )}

@@ -1,15 +1,15 @@
 import type { HTMLAttributes } from 'react';
 
 interface Props extends HTMLAttributes<HTMLDivElement> {
-  /** Nota destacada: papel kraft claro con sombra suave */
+  /** Nota destacada: hoja celeste, como un papel pegado sobre la página */
   nota?: boolean;
 }
 
-/** Tarjeta de papel con borde de grafito y esquinas irregulares (Parte 6, sección 5.3) */
+/** Hoja suelta con línea fina y sombra de papel */
 export function Tarjeta({ nota = false, className = '', ...resto }: Props) {
   return (
     <div
-      className={`rounded-trazo-2 border-2 border-grafito p-4 sm:p-5 ${nota ? 'bg-kraft-claro shadow-nota' : 'bg-papel'} ${className}`}
+      className={`rounded-trazo-2 border p-4 sm:p-5 ${nota ? 'border-celeste bg-celeste' : 'border-linea bg-hoja shadow-nota'} ${className}`}
       {...resto}
     />
   );

@@ -56,7 +56,7 @@ export function PantallaPersonas({
             type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            className="border-0 border-b-2 border-grafito bg-transparent px-1 py-2 focus:border-madera"
+            className="border-0 border-b-2 border-tinta bg-transparent px-1 py-2 focus:border-birome"
           />
         </div>
         <Boton onClick={() => setAccion({ tipo: 'nueva' })}>+ Nuevo {singular}</Boton>
@@ -69,7 +69,7 @@ export function PantallaPersonas({
               type="button"
               aria-pressed={activo === v}
               onClick={() => setActivo(v)}
-              className={`rounded-trazo border-2 px-3 py-1 text-sm font-bold ${activo === v ? 'border-cafe bg-cafe text-papel' : 'border-grafito bg-papel'}`}
+              className={`rounded-trazo border px-3 py-1 text-sm font-bold ${activo === v ? 'border-birome bg-birome text-hoja' : 'border-tinta bg-hoja'}`}
             >
               {v ? 'Activos' : 'Dados de baja'}
             </button>
@@ -86,11 +86,11 @@ export function PantallaPersonas({
         <Vacio>No hay {plural} para mostrar.</Vacio>
       )}
       {consulta.data && consulta.data.data.length > 0 && (
-        <ul className="fondo-cuaderno flex flex-col rounded-trazo-2 border-2 border-grafito py-2 pr-3 pl-9">
+        <ul className="fondo-cuaderno flex flex-col rounded-trazo-2 border border-linea py-2 pr-3 pl-9">
           {consulta.data.data.map((p) => (
             <li
               key={p.id}
-              className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-renglon py-2 last:border-b-0"
+              className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-cuadricula py-2 last:border-b-0"
             >
               <div className="min-w-0 flex-1">
                 <p className="font-bold">{p.nombre}</p>

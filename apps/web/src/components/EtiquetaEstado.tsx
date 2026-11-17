@@ -2,17 +2,17 @@ import type { EstadoTurno, PrioridadTarea, TipoEmprendimiento } from '@autonota/
 import { NOMBRE_TIPO_EMPRENDIMIENTO } from '@autonota/shared';
 
 const BASE =
-  'inline-flex items-center gap-1 rounded-trazo border-2 px-2.5 py-0.5 text-sm font-bold';
+  'inline-flex items-center gap-1 rounded-trazo border px-2 py-0.5 text-sm leading-5 font-bold';
 
 /**
- * Cada estado se distingue por su forma y no solo por el color (Parte 6, sección 5.3):
- * realizado relleno en café con tilde, ausente con borde punteado en madera, cancelado tachado en lápiz.
+ * Cada estado se distingue por su forma y no solo por el color:
+ * realizado relleno en birome con tilde, ausente con borde punteado en rojo, cancelado tachado en lápiz.
  */
 const ESTADOS_TURNO: Record<EstadoTurno, { clase: string; texto: string; marca?: string }> = {
-  PROGRAMADO: { clase: 'border-grafito text-grafito bg-papel', texto: 'Programado' },
-  REALIZADO: { clase: 'border-cafe bg-cafe text-papel', texto: 'Realizado', marca: '✓' },
-  AUSENTE: { clase: 'border-dotted border-madera text-madera bg-papel', texto: 'Ausente' },
-  CANCELADO: { clase: 'border-lapiz text-lapiz line-through bg-papel', texto: 'Cancelado' },
+  PROGRAMADO: { clase: 'border-linea bg-hoja text-tinta', texto: 'Programado' },
+  REALIZADO: { clase: 'border-birome bg-birome text-hoja', texto: 'Realizado', marca: '✓' },
+  AUSENTE: { clase: 'border-2 border-dotted border-rojo bg-hoja text-rojo', texto: 'Ausente' },
+  CANCELADO: { clase: 'border-linea bg-hoja text-lapiz line-through', texto: 'Cancelado' },
 };
 
 export function EtiquetaEstadoTurno({ estado }: { estado: EstadoTurno }) {
@@ -31,12 +31,12 @@ const SIGNOS: Record<PrioridadTarea, { signos: string; texto: string }> = {
   ALTA: { signos: '!!!', texto: 'Prioridad alta' },
 };
 
-/** Prioridad marcada en el margen con signos de exclamación escritos a mano */
+/** Prioridad marcada en el margen con signos de exclamación escritos en birome roja */
 export function MarcaPrioridad({ prioridad }: { prioridad: PrioridadTarea }) {
   const p = SIGNOS[prioridad];
   return (
     <span
-      className="font-mano text-2xl font-bold leading-none text-cafe"
+      className="font-mano text-2xl leading-none font-bold text-rojo"
       role="img"
       aria-label={p.texto}
     >
@@ -45,9 +45,17 @@ export function MarcaPrioridad({ prioridad }: { prioridad: PrioridadTarea }) {
   );
 }
 
+/** Color de tapa de cada tipo de negocio */
+export const TAPA: Record<TipoEmprendimiento, { texto: string; fondo: string }> = {
+  TURNERO: { texto: 'text-tapa-turnero', fondo: 'bg-tapa-turnero' },
+  CLASES: { texto: 'text-tapa-clases', fondo: 'bg-tapa-clases' },
+  VENTAS: { texto: 'text-tapa-ventas', fondo: 'bg-tapa-ventas' },
+};
+
 export function EtiquetaTipo({ tipo }: { tipo: TipoEmprendimiento }) {
   return (
-    <span className={`${BASE} border-madera bg-papel text-madera`}>
+    <span className={`${BASE} border-linea bg-hoja ${TAPA[tipo].texto}`}>
+      <span aria-hidden="true" className={`size-2.5 rounded-[2px] ${TAPA[tipo].fondo}`} />
       {NOMBRE_TIPO_EMPRENDIMIENTO[tipo]}
     </span>
   );

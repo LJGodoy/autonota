@@ -12,7 +12,7 @@ interface Props {
 export function TarjetaTarea({ tarea, alCambiarEstado, alAbrir }: Props) {
   const hecha = tarea.estado === 'REALIZADA';
   return (
-    <li className="flex gap-2 rounded-trazo border-2 border-grafito bg-papel p-3">
+    <li className="flex gap-2 rounded-trazo border border-linea bg-hoja p-3">
       <div className="w-8 shrink-0 text-center">
         <MarcaPrioridad prioridad={tarea.prioridad} />
       </div>
@@ -25,13 +25,13 @@ export function TarjetaTarea({ tarea, alCambiarEstado, alAbrir }: Props) {
             ? `Marcar «${tarea.titulo}» como pendiente`
             : `Marcar «${tarea.titulo}» como realizada`
         }
-        className="mt-1 size-5 shrink-0 accent-cafe"
+        className="mt-1 size-5 shrink-0 accent-birome"
       />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <button
           type="button"
           onClick={alAbrir}
-          className={`text-left font-bold ${hecha ? 'text-lapiz line-through' : 'text-grafito'}`}
+          className={`text-left font-bold ${hecha ? 'text-lapiz line-through' : 'text-tinta'}`}
         >
           {tarea.titulo}
         </button>
@@ -49,7 +49,7 @@ export function TarjetaTarea({ tarea, alCambiarEstado, alAbrir }: Props) {
             id={`estado-${tarea.id}`}
             value={tarea.estado}
             onChange={(e) => alCambiarEstado(e.target.value as EstadoTarea)}
-            className="border-0 border-b-2 border-grafito bg-transparent text-sm"
+            className="border-0 border-b-2 border-tinta bg-transparent text-sm"
           >
             {ESTADOS_TAREA.map((e) => (
               <option key={e} value={e}>

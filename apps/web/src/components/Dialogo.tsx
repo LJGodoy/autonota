@@ -23,11 +23,11 @@ export function Dialogo({ abierto, titulo, alCerrar, children }: Props) {
       ref={ref}
       onClose={alCerrar}
       aria-labelledby="dialogo-titulo"
-      className="m-auto w-[calc(100%-2rem)] max-w-md rounded-trazo-2 border-2 border-grafito bg-papel p-0 text-grafito shadow-nota backdrop:bg-grafito/40"
+      className="m-auto w-[calc(100%-2rem)] max-w-md rounded-trazo-2 border border-linea bg-hoja p-0 text-tinta shadow-nota backdrop:bg-tinta/40"
     >
       {abierto && (
         <div className="flex flex-col gap-4 p-5">
-          <h2 id="dialogo-titulo" className="font-mano text-3xl font-bold text-cafe">
+          <h2 id="dialogo-titulo" className="font-mano text-3xl font-bold text-birome">
             {titulo}
           </h2>
           {children}

@@ -4,12 +4,16 @@ import { Cargando } from '../components/Estados';
 import { useSesion } from '../lib/sesion';
 import { BannerDemo } from '../features/auth/BannerDemo';
 
-function PieDePagina() {
+function PieDePagina({ ancho }: { ancho: string }) {
   return (
-    <footer className="mx-auto flex w-full max-w-3xl flex-wrap gap-x-6 gap-y-2 px-4 py-6 text-sm text-lapiz">
-      <span>AutoNota · gratis, en pesos argentinos</span>
-      <Link to="/privacidad">Política de privacidad</Link>
-      <Link to="/terminos">Términos y condiciones</Link>
+    <footer className="border-t border-cuadricula">
+      <div
+        className={`mx-auto flex w-full ${ancho} flex-wrap gap-x-6 gap-y-2 px-4 py-6 text-sm text-lapiz`}
+      >
+        <span>AutoNota · gratis, en pesos argentinos</span>
+        <Link to="/privacidad">Política de privacidad</Link>
+        <Link to="/terminos">Términos y condiciones</Link>
+      </div>
     </footer>
   );
 }
@@ -19,7 +23,7 @@ export function LayoutPublico() {
   const { estado } = useSesion();
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="mx-auto flex w-full max-w-3xl items-center justify-between gap-4 px-4 py-4">
+      <header className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-4 pt-5 pb-3">
         <Logo destino={estado === 'autenticado' ? '/emprendimientos' : '/'} />
         {estado === 'anonimo' && (
           <Link to="/ingresar" className="font-bold">
@@ -27,15 +31,15 @@ export function LayoutPublico() {
           </Link>
         )}
       </header>
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-8">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-10">
         <Outlet />
       </main>
-      <PieDePagina />
+      <PieDePagina ancho="max-w-5xl" />
     </div>
   );
 }
 
-/** Pantallas que requieren sesión */
+/** Pantallas que requieren sesión: la tapa del cuaderno arriba, con el color del emprendimiento */
 export function LayoutApp() {
   const { estado, salidaVoluntaria } = useSesion();
   if (estado === 'cargando') return <Cargando texto="Abriendo tu cuaderno…" />;
@@ -43,26 +47,30 @@ export function LayoutApp() {
   if (estado === 'anonimo') return <Navigate to={salidaVoluntaria ? '/' : '/ingresar'} replace />;
 
   const claseEnlace = ({ isActive }: { isActive: boolean }) =>
-    `whitespace-nowrap font-bold ${isActive ? 'text-cafe no-underline' : ''}`;
+    `whitespace-nowrap rounded-trazo px-2.5 py-1.5 font-bold text-hoja no-underline transition-colors duration-150 hover:bg-hoja/15 hover:text-hoja ${
+      isActive ? 'bg-hoja/20 shadow-[inset_0_-2px_0_var(--color-resaltador)]' : 'text-hoja/85'
+    }`;
 
   return (
     <div className="flex min-h-dvh flex-col">
       <BannerDemo />
-      <header className="mx-auto flex w-full max-w-3xl items-center justify-between gap-4 px-4 py-4">
-        <Logo destino="/emprendimientos" />
-        <nav aria-label="Principal" className="flex gap-3 text-sm sm:gap-4 sm:text-base">
-          <NavLink to="/emprendimientos" end className={claseEnlace}>
-            Emprendimientos
-          </NavLink>
-          <NavLink to="/cuenta" className={claseEnlace}>
-            Mi cuenta
-          </NavLink>
-        </nav>
+      <header className="bg-tapa text-hoja transition-colors duration-300">
+        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-4 py-3">
+          <Logo destino="/emprendimientos" sobreTapa />
+          <nav aria-label="Principal" className="flex gap-1 text-sm sm:gap-2 sm:text-base">
+            <NavLink to="/emprendimientos" end className={claseEnlace}>
+              Emprendimientos
+            </NavLink>
+            <NavLink to="/cuenta" className={claseEnlace}>
+              Mi cuenta
+            </NavLink>
+          </nav>
+        </div>
       </header>
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-8">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-4 pb-10">
         <Outlet />
       </main>
-      <PieDePagina />
+      <PieDePagina ancho="max-w-5xl" />
     </div>
   );
 }

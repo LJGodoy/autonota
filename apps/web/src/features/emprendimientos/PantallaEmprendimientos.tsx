@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { MAX_EMPRENDIMIENTOS, type Emprendimiento } from '@autonota/shared';
 import { Boton } from '../../components/Boton';
 import { Cargando, MensajeError } from '../../components/Estados';
-import { EtiquetaTipo } from '../../components/EtiquetaEstado';
+import { EtiquetaTipo, TAPA } from '../../components/EtiquetaEstado';
 import { formatearFechaLarga } from '../../lib/fechas';
 import { useSesion } from '../../lib/sesion';
 import { useEmprendimientos } from './api';
@@ -31,7 +31,7 @@ export function PantallaEmprendimientos() {
         <p className="font-mano text-2xl text-lapiz first-letter:uppercase">
           {formatearFechaLarga()}
         </p>
-        <h1 className="font-mano text-5xl font-bold text-cafe">Hola, {usuario?.nombre}</h1>
+        <h1 className="font-mano text-5xl font-bold text-birome">Hola, {usuario?.nombre}</h1>
       </div>
 
       {lista.length === 0 && !creando && (
@@ -41,33 +41,40 @@ export function PantallaEmprendimientos() {
       )}
 
       {lista.length > 0 && (
-        <ul className="fondo-cuaderno flex flex-col gap-3 rounded-trazo-2 border-2 border-grafito py-4 pr-4 pl-10">
+        <ul className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {lista.map((e) => (
             <li
               key={e.id}
-              className="flex flex-col gap-2 rounded-trazo border-2 border-grafito bg-papel p-3 sm:flex-row sm:items-center"
+              className="flex items-start gap-4 rounded-trazo-2 border border-linea bg-hoja p-4 shadow-nota"
             >
-              <div className="flex flex-1 flex-col items-start gap-1">
-                <Link to={`/emprendimientos/${e.id}`} className="text-lg font-bold text-grafito">
+              {/* Tapa del cuaderno en miniatura, con el color del tipo de negocio */}
+              <span
+                aria-hidden="true"
+                className={`relative mt-1 h-14 w-10 shrink-0 rounded-[3px_6px_6px_3px] shadow-nota ${TAPA[e.tipo].fondo}`}
+              >
+                <span className="absolute inset-x-1.5 top-3.5 h-3.5 rounded-[2px] bg-hoja/90" />
+              </span>
+              <div className="flex min-w-0 flex-1 flex-col items-start gap-1.5">
+                <Link to={`/emprendimientos/${e.id}`} className="text-lg font-bold text-tinta">
                   {e.nombre}
                 </Link>
                 <EtiquetaTipo tipo={e.tipo} />
-              </div>
-              <div className="flex flex-wrap gap-1">
-                <Boton
-                  variante="texto"
-                  onClick={() => setRenombrando(e)}
-                  aria-label={`Cambiar el nombre de ${e.nombre}`}
-                >
-                  Renombrar
-                </Boton>
-                <Boton
-                  variante="texto"
-                  onClick={() => setEliminando(e)}
-                  aria-label={`Eliminar ${e.nombre}`}
-                >
-                  Eliminar
-                </Boton>
+                <div className="-ml-3 flex flex-wrap gap-1">
+                  <Boton
+                    variante="texto"
+                    onClick={() => setRenombrando(e)}
+                    aria-label={`Cambiar el nombre de ${e.nombre}`}
+                  >
+                    Renombrar
+                  </Boton>
+                  <Boton
+                    variante="texto"
+                    onClick={() => setEliminando(e)}
+                    aria-label={`Eliminar ${e.nombre}`}
+                  >
+                    Eliminar
+                  </Boton>
+                </div>
               </div>
             </li>
           ))}

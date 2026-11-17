@@ -32,7 +32,7 @@ export function Confirmacion({ titulo, textoConfirmar, children, alConfirmar, al
     <Dialogo abierto titulo={titulo} alCerrar={alCerrar}>
       <div className="flex flex-col gap-2">{children}</div>
       {error && (
-        <p role="alert" className="font-bold text-cafe">
+        <p role="alert" className="font-bold text-rojo">
           ✗ {error}
         </p>
       )}

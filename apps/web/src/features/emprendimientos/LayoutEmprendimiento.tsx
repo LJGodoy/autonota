@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Link,
   Navigate,
@@ -66,6 +66,17 @@ export function LayoutEmprendimiento() {
   const navegar = useNavigate();
   const consulta = useEmprendimiento(eid);
   const [dialogo, setDialogo] = useState<'renombrar' | 'eliminar' | null>(null);
+  const tipo = consulta.data?.tipo;
+
+  // La tapa del cuaderno toma el color del tipo de negocio mientras el emprendimiento está abierto
+  useEffect(() => {
+    if (!tipo) return;
+    const raiz = document.documentElement;
+    raiz.dataset.tapa = tipo;
+    return () => {
+      delete raiz.dataset.tapa;
+    };
+  }, [tipo]);
 
   if (consulta.isPending) return <Cargando />;
   if (consulta.isError) {
@@ -79,20 +90,20 @@ export function LayoutEmprendimiento() {
 
   const emp = consulta.data;
   const pestania = ({ isActive }: { isActive: boolean }) =>
-    `-mb-0.5 rounded-t-[10px] border-2 px-4 py-2 font-bold no-underline ${
-      isActive
-        ? 'border-grafito border-b-papel bg-papel text-cafe'
-        : 'border-transparent text-lapiz hover:text-cafe'
+    `shrink-0 rounded-t-trazo px-3 pt-2 pb-2.5 font-bold no-underline transition-colors duration-150 sm:px-4 ${
+      isActive ? 'text-tinta' : 'text-lapiz hover:bg-celeste hover:text-tinta'
     }`;
 
   return (
-    <section className="flex flex-col gap-5 py-2">
+    <section className="flex flex-col gap-4 py-2">
       <Link to="/emprendimientos" className="text-sm">
         ← Mis emprendimientos
       </Link>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex flex-col items-start gap-2">
-          <h1 className="font-mano text-5xl font-bold text-cafe">{emp.nombre}</h1>
+          <h1 className="font-mano text-4xl leading-tight font-bold text-birome sm:text-5xl">
+            {emp.nombre}
+          </h1>
           <EtiquetaTipo tipo={emp.tipo} />
         </div>
         <div className="flex gap-1">
@@ -107,11 +118,13 @@ export function LayoutEmprendimiento() {
 
       <nav
         aria-label="Secciones del emprendimiento"
-        className="flex gap-1 overflow-x-auto overflow-y-hidden border-b-2 border-grafito [scrollbar-width:none]"
+        className="-mx-4 flex gap-1 overflow-x-auto overflow-y-hidden border-b border-linea px-4 [scrollbar-width:none] sm:mx-0 sm:px-0"
       >
         {PESTANIAS[emp.tipo].map((p) => (
           <NavLink key={p.ruta} to={p.ruta} className={pestania}>
-            {p.texto}
+            {({ isActive }) => (
+              <span className={isActive ? 'resaltado px-1' : 'px-1'}>{p.texto}</span>
+            )}
           </NavLink>
         ))}
       </nav>

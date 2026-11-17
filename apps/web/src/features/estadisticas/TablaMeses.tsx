@@ -20,11 +20,11 @@ export function TablaMeses({
 }: Props) {
   const celda = 'px-2 py-2 text-right montos whitespace-nowrap';
   return (
-    <div className="overflow-x-auto rounded-trazo-2 border-2 border-grafito">
+    <div className="overflow-x-auto rounded-trazo-2 border border-linea bg-hoja shadow-nota">
       <table className="w-full min-w-[520px] border-collapse text-sm">
         <caption className="sr-only">Ingresos, gastos y saldo por mes</caption>
         <thead>
-          <tr className="border-b-2 border-grafito text-left text-lapiz">
+          <tr className="border-b border-tinta/70 bg-celeste text-left text-lapiz">
             <th scope="col" className="px-2 py-2">
               Mes
             </th>
@@ -46,27 +46,27 @@ export function TablaMeses({
           {[...estadisticas.meses].reverse().map((m) => (
             <tr
               key={m.mes}
-              className={`border-b border-renglon ${m.mes === mesElegido ? 'bg-kraft-claro' : ''}`}
+              className={`border-b border-cuadricula ${m.mes === mesElegido ? 'bg-resaltador/45' : 'hover:bg-celeste/60'}`}
             >
               <th scope="row" className="px-2 py-1 text-left font-normal">
                 <button
                   type="button"
-                  className="text-madera underline underline-offset-4 first-letter:uppercase"
+                  className="min-h-9 text-birome underline decoration-1 underline-offset-4 first-letter:uppercase hover:text-birome-oscura"
                   aria-pressed={m.mes === mesElegido}
                   onClick={() => alElegirMes(m.mes)}
                 >
                   {formatearMes(m.mes)}
                 </button>
               </th>
-              <td className={`${celda} text-cafe`}>{formatearPesos(m.ingresosCentavos)}</td>
-              <td className={`${celda} text-madera`}>{formatearPesos(m.gastosCentavos)}</td>
+              <td className={`${celda} text-birome`}>{formatearPesos(m.ingresosCentavos)}</td>
+              <td className={`${celda} text-rojo`}>{formatearPesos(m.gastosCentavos)}</td>
               <td className={`${celda} font-bold`}>{formatearPesos(m.saldoCentavos)}</td>
               <td className={celda}>{m.cantidadIngresos}</td>
             </tr>
           ))}
         </tbody>
         <tfoot>
-          <tr className="border-t-2 border-grafito font-bold">
+          <tr className="border-t-[3px] border-double border-tinta font-bold">
             <th scope="row" className="px-2 py-2 text-left">
               Total del período
             </th>

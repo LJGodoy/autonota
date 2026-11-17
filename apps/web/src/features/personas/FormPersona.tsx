@@ -67,7 +67,7 @@ export function FormPersona({ eid, recurso, persona, alCerrar }: Props) {
             id="notas-persona"
             rows={3}
             aria-describedby="aviso-notas"
-            className="w-full border-0 border-b-2 border-grafito bg-transparent px-1 py-2 focus:border-madera"
+            className="w-full border-0 border-b-2 border-tinta bg-transparent px-1 py-2 focus:border-birome"
             {...register('notas')}
           />
           {/* RNF-07 */}
@@ -75,13 +75,13 @@ export function FormPersona({ eid, recurso, persona, alCerrar }: Props) {
             No cargues información sensible que no haga falta, como datos de salud.
           </p>
           {formState.errors.notas && (
-            <p role="alert" className="text-sm font-bold text-cafe">
+            <p role="alert" className="text-sm font-bold text-rojo">
               ✗ {formState.errors.notas.message}
             </p>
           )}
         </div>
         {errorGeneral && (
-          <p role="alert" className="font-bold text-cafe">
+          <p role="alert" className="font-bold text-rojo">
             ✗ {errorGeneral}
           </p>
         )}

@@ -42,7 +42,7 @@ export function FormNuevoEmprendimiento({ alCancelar }: { alCancelar?: () => voi
   return (
     <Tarjeta>
       <form onSubmit={alEnviar} noValidate className="flex flex-col gap-5">
-        <h2 className="font-mano text-3xl font-bold text-cafe">Nuevo emprendimiento</h2>
+        <h2 className="font-mano text-3xl font-bold text-birome">Nuevo emprendimiento</h2>
         <Campo
           etiqueta="Nombre"
           placeholder="Por ejemplo, Peluquería Laura"
@@ -56,12 +56,12 @@ export function FormNuevoEmprendimiento({ alCancelar }: { alCancelar?: () => voi
           {TIPOS_EMPRENDIMIENTO.map((tipo) => (
             <label
               key={tipo}
-              className="flex cursor-pointer items-start gap-3 rounded-trazo border-2 border-grafito p-3 has-[:checked]:bg-kraft-claro has-[:checked]:border-cafe"
+              className="flex cursor-pointer items-start gap-3 rounded-trazo border border-linea p-3 has-[:checked]:bg-celeste has-[:checked]:border-birome"
             >
               <input
                 type="radio"
                 value={tipo}
-                className="mt-1 size-4 accent-cafe"
+                className="mt-1 size-4 accent-birome"
                 {...register('tipo')}
               />
               <span>
@@ -71,13 +71,13 @@ export function FormNuevoEmprendimiento({ alCancelar }: { alCancelar?: () => voi
             </label>
           ))}
           {formState.errors.tipo && (
-            <p role="alert" className="text-sm font-bold text-cafe">
+            <p role="alert" className="text-sm font-bold text-rojo">
               ✗ {formState.errors.tipo.message}
             </p>
           )}
         </fieldset>
         {errorGeneral && (
-          <p role="alert" className="font-bold text-cafe">
+          <p role="alert" className="font-bold text-rojo">
             ✗ {errorGeneral}
           </p>
         )}

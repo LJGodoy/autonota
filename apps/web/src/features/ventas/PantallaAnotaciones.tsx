@@ -16,7 +16,7 @@ import { DetalleTarea } from './DetalleTarea';
 import { FormTarea } from './FormTarea';
 import { TarjetaTarea } from './TarjetaTarea';
 
-const selector = 'min-h-10 border-0 border-b-2 border-grafito bg-transparent px-1';
+const selector = 'min-h-10 border-0 border-b-2 border-tinta bg-transparent px-1';
 
 /** RF-50 a RF-54: tablero de anotaciones por estado, con filtros por estado y prioridad */
 export function PantallaAnotaciones() {
@@ -94,7 +94,7 @@ export function PantallaAnotaciones() {
         </label>
       </div>
       {aviso && (
-        <p role="alert" className="font-bold text-cafe">
+        <p role="alert" className="font-bold text-rojo">
           ✗ {aviso}
         </p>
       )}
@@ -113,9 +113,9 @@ export function PantallaAnotaciones() {
               <section
                 key={col}
                 aria-labelledby={`col-${col}`}
-                className="flex flex-col gap-2 rounded-trazo-2 border-2 border-grafito bg-kraft-claro/40 p-3"
+                className="flex flex-col gap-2 rounded-trazo-2 border border-linea bg-celeste/40 p-3"
               >
-                <h2 id={`col-${col}`} className="font-mano text-3xl font-bold text-cafe">
+                <h2 id={`col-${col}`} className="font-mano text-3xl font-bold text-birome">
                   {NOMBRE_ESTADO_TAREA[col]}{' '}
                   <span className="text-xl text-lapiz">({delEstado.length})</span>
                 </h2>

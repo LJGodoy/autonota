@@ -77,7 +77,7 @@ export function FormTurno({ eid, turno, inicial, alCerrar }: Props) {
           <div className="flex gap-2">
             <select
               id="cliente-turno"
-              className="min-h-11 flex-1 border-0 border-b-2 border-grafito bg-transparent px-1 focus:border-madera"
+              className="min-h-11 flex-1 border-0 border-b-2 border-tinta bg-transparent px-1 focus:border-birome"
               {...register('clienteId')}
             >
               <option value="">Elegí un cliente…</option>
@@ -92,7 +92,7 @@ export function FormTurno({ eid, turno, inicial, alCerrar }: Props) {
             </Boton>
           </div>
           {formState.errors.clienteId && (
-            <p role="alert" className="text-sm font-bold text-cafe">
+            <p role="alert" className="text-sm font-bold text-rojo">
               ✗ {formState.errors.clienteId.message}
             </p>
           )}
@@ -129,7 +129,7 @@ export function FormTurno({ eid, turno, inicial, alCerrar }: Props) {
           {...register('descripcion')}
         />
         {errorGeneral && (
-          <p role="alert" className="font-bold text-cafe">
+          <p role="alert" className="font-bold text-rojo">
             ✗ {errorGeneral}
           </p>
         )}

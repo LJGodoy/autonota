@@ -127,7 +127,7 @@ export function FormMovimiento({
           </label>
           <select
             id="medio-pago"
-            className="min-h-11 border-0 border-b-2 border-grafito bg-transparent px-1 text-base focus:border-madera"
+            className="min-h-11 border-0 border-b-2 border-tinta bg-transparent px-1 text-base focus:border-birome"
             {...register('medioPago')}
           >
             <option value="">Sin indicar</option>
@@ -139,7 +139,7 @@ export function FormMovimiento({
           </select>
         </div>
         {errorGeneral && (
-          <p role="alert" className="font-bold text-cafe">
+          <p role="alert" className="font-bold text-rojo">
             ✗ {errorGeneral}
           </p>
         )}

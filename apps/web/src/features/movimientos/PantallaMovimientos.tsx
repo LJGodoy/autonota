@@ -4,7 +4,6 @@ import type { Movimiento, TipoMovimiento } from '@autonota/shared';
 import { Boton } from '../../components/Boton';
 import { Cargando, MensajeError, Vacio } from '../../components/Estados';
 import { SelectorMes } from '../../components/SelectorMes';
-import { formatearPesos } from '../../lib/dinero';
 import { formatearMes, mesActual } from '../../lib/meses';
 import { useEmprendimientoActual } from '../emprendimientos/LayoutEmprendimiento';
 import { useMovimientos } from './api';
@@ -64,7 +63,7 @@ export function PantallaMovimientos() {
             type="button"
             aria-pressed={filtro === o.valor}
             onClick={() => setFiltro(o.valor)}
-            className={`rounded-trazo border-2 px-3 py-1 text-sm font-bold ${filtro === o.valor ? 'border-cafe bg-cafe text-papel' : 'border-grafito bg-papel'}`}
+            className={`min-h-9 rounded-trazo border px-3 py-1 text-sm font-bold transition-colors duration-150 ${filtro === o.valor ? 'border-birome bg-birome text-hoja' : 'border-linea bg-hoja text-tinta hover:bg-celeste'}`}
           >
             {o.texto}
           </button>
@@ -82,14 +81,13 @@ export function PantallaMovimientos() {
       )}
       {consulta.isSuccess && lista.length > 0 && (
         <>
-          <p className="montos text-sm text-lapiz">
-            {formatearMes(mes)}: entraron{' '}
-            <strong className="text-cafe">{formatearPesos(ingresos)}</strong> y salieron{' '}
-            <strong className="text-madera">{formatearPesos(gastos)}</strong>.
-            {consulta.data.meta.total > lista.length &&
-              ` Se muestran ${lista.length} de ${consulta.data.meta.total}.`}
-          </p>
+          {consulta.data.meta.total > lista.length && (
+            <p className="text-sm text-lapiz">
+              Se muestran {lista.length} de {consulta.data.meta.total}.
+            </p>
+          )}
           <ListaMovimientos
+            cuenta={{ titulo: `Cuenta de ${formatearMes(mes)}`, ingresos, gastos }}
             movimientos={lista}
             tipoNegocio={emp.tipo}
             alEditar={(m) => setFormulario({ tipo: m.tipo, movimiento: m })}

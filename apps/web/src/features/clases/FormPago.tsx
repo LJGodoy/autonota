@@ -71,7 +71,7 @@ export function FormPago({ eid, alumnoId, alCerrar }: Props) {
             value={alumno}
             disabled={Boolean(alumnoId)}
             onChange={(e) => setAlumno(e.target.value)}
-            className="min-h-11 border-0 border-b-2 border-grafito bg-transparent px-1"
+            className="min-h-11 border-0 border-b-2 border-tinta bg-transparent px-1"
           >
             <option value="">Elegí un alumno…</option>
             {alumnos.data?.data.map((a) => (
@@ -105,7 +105,7 @@ export function FormPago({ eid, alumnoId, alCerrar }: Props) {
             id="medio-pago-alumno"
             value={medio}
             onChange={(e) => setMedio(e.target.value as MedioPago | '')}
-            className="min-h-11 border-0 border-b-2 border-grafito bg-transparent px-1"
+            className="min-h-11 border-0 border-b-2 border-tinta bg-transparent px-1"
           >
             <option value="">Sin indicar</option>
             {MEDIOS_PAGO.map((m) => (
@@ -122,7 +122,7 @@ export function FormPago({ eid, alumnoId, alCerrar }: Props) {
           onChange={(e) => setNota(e.target.value)}
         />
         {error && (
-          <p role="alert" className="font-bold text-cafe">
+          <p role="alert" className="font-bold text-rojo">
             ✗ {error}
           </p>
         )}

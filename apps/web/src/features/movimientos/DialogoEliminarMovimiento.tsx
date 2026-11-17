@@ -39,7 +39,7 @@ export function DialogoEliminarMovimiento({
         {movimiento.descripcion ? ` («${movimiento.descripcion}»)` : ''}. No se puede deshacer.
       </p>
       {error && (
-        <p role="alert" className="font-bold text-cafe">
+        <p role="alert" className="font-bold text-rojo">
           ✗ {error}
         </p>
       )}
