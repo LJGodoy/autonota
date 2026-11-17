@@ -60,7 +60,7 @@ export function GestorBloqueos({ eid }: { eid: string }) {
 
   return (
     <Tarjeta className="flex flex-col gap-4">
-      <h2 className="font-mano text-3xl font-bold text-birome">Días bloqueados</h2>
+      <h2 className="font-mano text-3xl font-bold text-cafe">Días bloqueados</h2>
       <div className="grid gap-3 sm:grid-cols-2">
         <Campo
           etiqueta={diaCompleto ? 'Desde el día' : 'Día'}

@@ -27,7 +27,7 @@ export function Dialogo({ abierto, titulo, alCerrar, children }: Props) {
     >
       {abierto && (
         <div className="flex flex-col gap-4 p-5">
-          <h2 id="dialogo-titulo" className="font-mano text-3xl font-bold text-birome">
+          <h2 id="dialogo-titulo" className="font-mano text-3xl font-bold text-cafe">
             {titulo}
           </h2>
           {children}

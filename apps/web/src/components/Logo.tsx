@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 
-/** Logo escrito en birome; sobre la tapa va en blanco */
+/** Logo escrito en cafe; sobre la tapa va en blanco */
 export function Logo({
   destino = '/',
   sobreTapa = false,
@@ -11,7 +11,7 @@ export function Logo({
   return (
     <Link
       to={destino}
-      className={`shrink-0 font-mano text-3xl leading-none font-bold no-underline sm:text-[2rem] ${sobreTapa ? 'text-hoja hover:text-hoja' : 'text-birome'}`}
+      className={`shrink-0 font-mano text-3xl leading-none font-bold no-underline sm:text-[2rem] ${sobreTapa ? 'text-hoja hover:text-hoja' : 'text-cafe'}`}
       aria-label="AutoNota, inicio"
     >
       Auto

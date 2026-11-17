@@ -77,7 +77,7 @@ export function FormTurno({ eid, turno, inicial, alCerrar }: Props) {
           <div className="flex gap-2">
             <select
               id="cliente-turno"
-              className="min-h-11 flex-1 border-0 border-b-2 border-tinta bg-transparent px-1 focus:border-birome"
+              className="min-h-11 flex-1 border-0 border-b-2 border-tinta bg-transparent px-1 focus:border-cafe"
               {...register('clienteId')}
             >
               <option value="">Elegí un cliente…</option>

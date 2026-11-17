@@ -42,7 +42,7 @@ export function PantallaRestablecer() {
 
   return (
     <section className="mx-auto flex max-w-sm flex-col gap-6 py-6">
-      <h1 className="font-mano text-5xl font-bold text-birome">Contraseña nueva</h1>
+      <h1 className="font-mano text-5xl font-bold text-cafe">Contraseña nueva</h1>
       {estado === 'listo' && (
         <Tarjeta nota className="flex flex-col gap-3">
           <p>Listo, cambiaste tu contraseña. Por seguridad cerramos todas tus sesiones.</p>

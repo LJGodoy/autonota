@@ -65,7 +65,7 @@ export function FormTarea({
           <textarea
             id="descripcion-tarea"
             rows={3}
-            className="w-full border-0 border-b-2 border-tinta bg-transparent px-1 py-2 focus:border-birome"
+            className="w-full border-0 border-b-2 border-tinta bg-transparent px-1 py-2 focus:border-cafe"
             {...register('descripcion')}
           />
         </div>
@@ -74,9 +74,9 @@ export function FormTarea({
           {PRIORIDADES_TAREA.map((p) => (
             <label
               key={p}
-              className="flex items-center gap-2 rounded-trazo border border-linea px-3 py-2 has-[:checked]:bg-celeste"
+              className="flex items-center gap-2 rounded-trazo border border-linea px-3 py-2 has-[:checked]:bg-arena"
             >
-              <input type="radio" value={p} className="accent-birome" {...register('prioridad')} />
+              <input type="radio" value={p} className="accent-cafe" {...register('prioridad')} />
               {NOMBRE_PRIORIDAD[p]}
             </label>
           ))}

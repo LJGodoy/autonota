@@ -1,50 +1,50 @@
 # AutoNota design system
 
-The Argentine school notebook (graph paper, ballpoint, highlighter) used as a work tool.
-The tokens live in `apps/web/src/index.css` (`@theme`); change them there and only there.
+A work notebook in white, black and a brown scale. Green and red only where they mean something.
+The tokens live in `apps/web/src/index.css` (`@theme`); change them there and only ## Color
 
-## Color
+Owner-pinned palette: **white predominant, black and a brown scale**; green and red only where they carry
+meaning (money in, money out, errors). No blue and no graph paper.
 
-Strategy: **Restrained with a committed shell**. White sheet plus ballpoint ink; the colour that carries the
-surface is the notebook cover (top bar), which changes with the business that is open.
-
-| Token                                          | Value                             | Use                                                                 |
-| ---------------------------------------------- | --------------------------------- | ------------------------------------------------------------------- |
-| `hoja`                                         | `#fcfdff`                         | Page and card background                                            |
-| `celeste`                                      | `#edf2fa`                         | Second layer: hover, table headers, notes, active field             |
-| `tinta`                                        | `#1b2136`                         | Main text, control borders                                          |
-| `lapiz`                                        | `#4b5470`                         | Secondary text, labels (≥ 7:1 on `hoja`)                            |
-| `linea`                                        | `#bcc8dc`                         | Container lines and secondary buttons                               |
-| `cuadricula`                                   | `#dbe5f4`                         | Graph-paper grid and row separators (decorative only)               |
-| `birome` / `birome-oscura`                     | `#2539b0` / `#1a2a85`             | Primary action, links, handwritten headings, income                 |
-| `rojo`                                         | `#b42318`                         | Errors, expenses, "absent", "unpaid"                                |
-| `margen`                                       | `#ec8a8f`                         | Red margin line (decorative only)                                   |
-| `resaltador`                                   | `#fff06e`                         | Active tab, today, selection, demo banner; always with `tinta` text |
-| `tapa-general`                                 | `#23284a`                         | Account cover (no business open)                                    |
-| `tapa-turnero` / `tapa-clases` / `tapa-ventas` | `#a3262c` / `#1d6447` / `#1f4b96` | Cover for each business type                                        |
+| Token                                          | Value                             | Use                                                     |
+| ---------------------------------------------- | --------------------------------- | ------------------------------------------------------- |
+| `hoja`                                         | `#ffffff`                         | Page and card background (the dominant colour)          |
+| `arena`                                        | `#f5f1ec`                         | Second layer: hover, table headers, notes, active field |
+| `tinta`                                        | `#161311`                         | Main text, control borders                              |
+| `lapiz`                                        | `#5e554d`                         | Secondary text, labels                                  |
+| `linea` / `cuadricula`                         | `#d6cdc2` / `#ece6de`             | Container lines / row separators                        |
+| `cafe` / `cafe-oscuro`                         | `#4a3324` / `#2c1e15`             | Primary action, links, headings                         |
+| `madera` / `tostado`                           | `#8a6446` / `#c4a383`             | Brown accents                                           |
+| `verde`                                        | `#1d6b3f`                         | Income: amounts and bars                                |
+| `rojo`                                         | `#b42318`                         | Expenses, errors, "absent", "unpaid"                    |
+| `margen` / `resaltador`                        | `#e3d3c1` / `#ecdcc8`             | Margin line and marker pass (decorative only)           |
+| `tapa-general`                                 | `#161311`                         | Top bar with no business open                           |
+| `tapa-turnero` / `tapa-clases` / `tapa-ventas` | `#3b281c` / `#4f3a2a` / `#634632` | Top bar for each business type: three browns            |
 
 `bg-tapa` reads `--tapa-actual`; `LayoutEmprendimiento` sets `data-tapa` on `<html>` while a business is
-open. Light mode only: the notebook is paper, used by day at the job and at night on the computer.
+open. Light mode only.
+
+puter.
 
 ## Type
 
-- **Kalam** (ballpoint handwriting), only for headings (`font-mano`): h1 `text-4xl`/`text-5xl`, h2 `text-3xl`,
+- **Kalam** (handwriting), only for headings (`font-mano`): h1 `text-4xl`/`text-5xl`, h2 `text-3xl`,
   h3 `text-2xl`, and the total at the foot. Never on labels, buttons or data.
 - **Atkinson Hyperlegible** for everything else (a legibility commitment). Amounts in `montos` (tabular).
 
 ## Shape and depth
 
 - `rounded-trazo` 6 px (controls), `rounded-trazo-2` 10 px (sheets and dialogs).
-- Thin 1 px ballpoint lines; 2 px only on the field underline and the checkbox.
+- Thin 1 px lines; 2 px only on the field underline and the checkbox.
 - `shadow-nota`: soft paper shadow (offset + blur). No hard offset shadows.
 
 ## Components
 
-- **Boton**: `primario` filled with ballpoint ink; `secundario` with a `linea` border and `celeste` hover;
+- **Boton**: `primario` filled with brown; `secundario` with a `linea` border and `arena` hover;
   `peligro` red outline that fills on hover; `texto` underlined link.
-- **Campo / select / textarea**: written on the line (2 px bottom border). Hover and focus go ballpoint
-  blue, and focus also gets a `celeste` background (global rule in `index.css`). Error: red dashed line.
-- **Tarjeta**: loose sheet (`hoja` + `linea` + shadow); `nota` = `celeste` without a border. Never nest cards.
+- **Campo / select / textarea**: written on the line (2 px bottom border). Hover and focus go brown,
+  and focus also gets an `arena` background (global rule in `index.css`). Error: red dashed line.
+- **Tarjeta**: loose sheet (`hoja` + `linea` + shadow); `nota` = `arena` without a border. Never nest cards.
 - **Tabs** for a business: plain text; the active one gets a `resaltado` pass.
 - **Labels**: shape-based states (filled ✓ done, red dotted absent, struck-through cancelled).
   `EtiquetaTipo` carries a small square in the cover colour.
@@ -52,10 +52,10 @@ open. Light mode only: the notebook is paper, used by day at the job and at nigh
 
 ## Signature moves
 
-1. **`.resaltado`**: a highlighter swipe with slightly crooked edges. Only for the active state, today and selection.
+1. **`.resaltado`**: a Marker pass with slightly crooked edges. Only for the active state, today and selection.
 2. **`.total-al-pie`**: the hand-done sum, with a double line underneath (`ListaMovimientos` with `cuenta`,
    balance in Estadísticas, total of the period in the table).
-3. **`.fondo-cuaderno`**: 5 mm graph paper with a red margin line, only on work areas (lists, empty states).
+3. **`.fondo-cuaderno`**: white sheet with a light brown margin line, only on lists and empty states.
 
 ## Motion
 

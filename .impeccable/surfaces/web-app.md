@@ -11,26 +11,24 @@ changes. States keep being told apart by shape (filled, dotted, struck through),
 
 ## Direction contract
 
-THESIS: The Argentine school notebook (graph paper, ballpoint, highlighter) as a work tool. It refuses the
+THESIS: A clean work notebook (white paper, dark ink, browns) that does the sums. It refuses the
 generic grey SaaS panel and the cream-and-kraft rustic notebook.
 
-OWN-WORLD: Bright white sheet with a light blue 5 mm grid (only on work areas), Bic-blue ballpoint ink for
-actions, handwritten headings and income, red margin line on lists, notebook-red for errors and expenses.
-Each business has its own cover colour: Turnero red, Clases green, Ventas blue. Thin 1px ballpoint lines,
-small corners, soft paper shadows. Kalam (ballpoint handwriting) only for headings; Atkinson Hyperlegible
-for everything else.
+OWN-WORLD (pinned by the owner after rejecting the first rendition): white predominant, black for text,
+a brown scale for actions, headings and the top bar (one brown per business type). Green for income, red
+for expenses and errors. Light brown margin line, a marker pass in light brown on the active item. No
+graph paper and no blue. Kalam for headings, Atkinson Hyperlegible for everything else.
 
 STORY: The user recognises their notebook, finds their business by the cover colour, writes things down
 and sees the totals without asking for them.
 
-FIRST VIEWPORT: Top bar in the business's cover colour with logo and navigation; underneath, the name
-handwritten in ballpoint, the type label and the tabs; the active tab marked with a highlighter. Then the
-work area on graph paper.
+FIRST VIEWPORT: Top bar in the business's brown with logo and navigation; underneath, the name
+handwritten in dark brown, the type label and the tabs; the active tab with a light brown marker pass.
+Then the work area on white.
 
-FORM: Graph paper and ballpoint, option 1 of 3 presented. seed: none (unavailable): `concept-seed` did not
-run because the engine was not installed.
+FORM: Owner-pinned palette over the notebook structure. seed: none (pinned): "que tenga como
+predominante el color blanco, negro y una escala de marrones".
 
-Signature: the yellow highlighter swipe (active tab, today, selection) and the total at the foot with a
-double line.
+Signature: the light brown marker pass (active tab, today) and the total at the foot with a double line.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance

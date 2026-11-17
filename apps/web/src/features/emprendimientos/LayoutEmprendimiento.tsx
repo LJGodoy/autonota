@@ -91,7 +91,7 @@ export function LayoutEmprendimiento() {
   const emp = consulta.data;
   const pestania = ({ isActive }: { isActive: boolean }) =>
     `shrink-0 rounded-t-trazo px-3 pt-2 pb-2.5 font-bold no-underline transition-colors duration-150 sm:px-4 ${
-      isActive ? 'text-tinta' : 'text-lapiz hover:bg-celeste hover:text-tinta'
+      isActive ? 'text-tinta' : 'text-lapiz hover:bg-arena hover:text-tinta'
     }`;
 
   return (
@@ -101,7 +101,7 @@ export function LayoutEmprendimiento() {
       </Link>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex flex-col items-start gap-2">
-          <h1 className="font-mano text-4xl leading-tight font-bold text-birome sm:text-5xl">
+          <h1 className="font-mano text-4xl leading-tight font-bold text-cafe sm:text-5xl">
             {emp.nombre}
           </h1>
           <EtiquetaTipo tipo={emp.tipo} />

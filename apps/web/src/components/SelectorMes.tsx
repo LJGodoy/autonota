@@ -15,9 +15,9 @@ export function SelectorMes({ etiqueta, valor, alCambiar, rangoAnios = 3 }: Prop
   const [anio, mes] = valor.split('-').map(Number) as [number, number];
   const anios = Array.from({ length: rangoAnios * 2 + 1 }, (_, i) => anio - rangoAnios + i);
   const flecha =
-    'flex size-10 items-center justify-center rounded-trazo border border-linea bg-hoja font-bold hover:bg-celeste';
+    'flex size-10 items-center justify-center rounded-trazo border border-linea bg-hoja font-bold hover:bg-arena';
   const select =
-    'min-h-10 border-0 border-b-2 border-tinta bg-transparent px-1 font-sans text-base text-tinta capitalize focus:border-birome';
+    'min-h-10 border-0 border-b-2 border-tinta bg-transparent px-1 font-sans text-base text-tinta capitalize focus:border-cafe';
 
   return (
     <fieldset className="flex flex-col gap-1">

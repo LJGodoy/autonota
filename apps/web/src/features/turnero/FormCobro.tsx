@@ -98,7 +98,7 @@ export function FormCobro({ eid, turno, realizar, alCerrar }: Props) {
               id="medio-cobro"
               value={medio}
               onChange={(e) => setMedio(e.target.value as MedioPago | '')}
-              className="min-h-11 border-0 border-b-2 border-tinta bg-transparent px-1 focus:border-birome"
+              className="min-h-11 border-0 border-b-2 border-tinta bg-transparent px-1 focus:border-cafe"
             >
               <option value="">Sin indicar</option>
               {MEDIOS_PAGO.map((m) => (

@@ -58,7 +58,7 @@ export function EditorHorarios({ eid }: { eid: string }) {
 
   return (
     <Tarjeta className="flex flex-col gap-4">
-      <h2 className="font-mano text-3xl font-bold text-birome">Horarios de atención</h2>
+      <h2 className="font-mano text-3xl font-bold text-cafe">Horarios de atención</h2>
       <p className="text-sm text-lapiz">
         Podés cargar varias franjas por día, por ejemplo de 9 a 13 y de 16 a 20. Si son seguidas (9
         a 13 y 13 a 17) cuentan como una sola.
@@ -125,7 +125,7 @@ export function EditorHorarios({ eid }: { eid: string }) {
         </p>
       )}
       {ok && (
-        <p role="status" className="font-bold text-birome">
+        <p role="status" className="font-bold text-cafe">
           ✓ Horarios guardados
         </p>
       )}

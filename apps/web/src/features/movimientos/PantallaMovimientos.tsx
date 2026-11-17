@@ -63,7 +63,7 @@ export function PantallaMovimientos() {
             type="button"
             aria-pressed={filtro === o.valor}
             onClick={() => setFiltro(o.valor)}
-            className={`min-h-9 rounded-trazo border px-3 py-1 text-sm font-bold transition-colors duration-150 ${filtro === o.valor ? 'border-birome bg-birome text-hoja' : 'border-linea bg-hoja text-tinta hover:bg-celeste'}`}
+            className={`min-h-9 rounded-trazo border px-3 py-1 text-sm font-bold transition-colors duration-150 ${filtro === o.valor ? 'border-cafe bg-cafe text-hoja' : 'border-linea bg-hoja text-tinta hover:bg-arena'}`}
           >
             {o.texto}
           </button>

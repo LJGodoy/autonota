@@ -1,33 +1,36 @@
 @import 'tailwindcss';
 
-/* Identidad visual de AutoNota: el cuaderno escolar argentino (hoja cuadriculada, birome azul,
-   resaltador) usado como herramienta de trabajo. Los tokens se cambian en un solo lugar.
-   Cuadrícula, margen y resaltador son decorativos: nunca llevan texto propio. */
+/* Identidad visual de AutoNota: un cuaderno de trabajo en blanco, negro y una escala de marrones.
+   Verde y rojo solo donde significan algo: entra dinero, sale dinero, errores.
+   Los tokens se cambian en un solo lugar. Margen y resaltador son decorativos. */
 @theme {
   /* Hoja y tinta */
-  --color-hoja: #fcfdff;
-  --color-celeste: #edf2fa;
-  --color-tinta: #1b2136;
-  --color-lapiz: #4b5470;
-  --color-linea: #bcc8dc;
-  --color-cuadricula: #dbe5f4;
+  --color-hoja: #ffffff;
+  --color-arena: #f5f1ec;
+  --color-tinta: #161311;
+  --color-lapiz: #5e554d;
+  --color-linea: #d6cdc2;
+  --color-cuadricula: #ece6de;
 
-  /* Birome azul: acciones, títulos escritos a mano e ingresos */
-  --color-birome: #2539b0;
-  --color-birome-oscura: #1a2a85;
+  /* Escala de marrones: acciones, títulos y acentos */
+  --color-cafe: #4a3324;
+  --color-cafe-oscuro: #2c1e15;
+  --color-madera: #8a6446;
+  --color-tostado: #c4a383;
 
-  /* Rojo de cuaderno: errores y gastos. El margen es solo decorativo. */
+  /* Dinero y estados */
+  --color-verde: #1d6b3f;
   --color-rojo: #b42318;
-  --color-margen: #ec8a8f;
 
-  /* Resaltador amarillo: hoy, pestaña activa, selección */
-  --color-resaltador: #fff06e;
+  /* Decorativos: línea de margen y pasada de marcador sobre lo activo */
+  --color-margen: #e3d3c1;
+  --color-resaltador: #ecdcc8;
 
-  /* Tapas: una por tipo de negocio, más la tapa general de la cuenta */
-  --color-tapa-general: #23284a;
-  --color-tapa-turnero: #a3262c;
-  --color-tapa-clases: #1d6447;
-  --color-tapa-ventas: #1f4b96;
+  /* Tapas: barra superior; cada tipo de negocio, un tono de la escala de marrones */
+  --color-tapa-general: #161311;
+  --color-tapa-turnero: #3b281c;
+  --color-tapa-clases: #4f3a2a;
+  --color-tapa-ventas: #634632;
   --color-tapa: var(--tapa-actual, var(--color-tapa-general));
 
   --font-mano: 'Kalam', 'Segoe Print', cursive;
@@ -36,7 +39,7 @@
   --radius-trazo: 6px;
   --radius-trazo-2: 10px;
 
-  --shadow-nota: 0 1px 2px rgb(27 33 54 / 0.06), 0 6px 16px -4px rgb(27 33 54 / 0.12);
+  --shadow-nota: 0 1px 2px rgb(22 19 17 / 0.05), 0 6px 16px -4px rgb(22 19 17 / 0.1);
 }
 
 /* La tapa cambia con el emprendimiento abierto (lo marca LayoutEmprendimiento) */
@@ -56,8 +59,8 @@
     color: var(--color-tinta);
     font-family: var(--font-sans);
     -webkit-text-size-adjust: 100%;
-    accent-color: var(--color-birome);
-    caret-color: var(--color-birome);
+    accent-color: var(--color-cafe);
+    caret-color: var(--color-cafe);
     scrollbar-color: var(--color-linea) transparent;
   }
   body {
@@ -68,17 +71,17 @@
     color: var(--color-tinta);
   }
   :focus-visible {
-    outline: 3px solid var(--color-birome);
+    outline: 3px solid var(--color-cafe);
     outline-offset: 2px;
   }
   a {
-    color: var(--color-birome);
+    color: var(--color-cafe);
     text-decoration: underline;
     text-decoration-thickness: 1.5px;
     text-underline-offset: 3px;
   }
   a:hover {
-    color: var(--color-birome-oscura);
+    color: var(--color-cafe-oscuro);
   }
   h1,
   h2,
@@ -91,23 +94,16 @@
 }
 
 @layer components {
-  /* Hoja cuadriculada de 5 mm con la línea roja de margen: listas, agenda y tablas */
+  /* Hoja con la línea de margen: listas y estados vacíos. Sin cuadrícula: el blanco manda. */
   .fondo-cuaderno {
     background-color: var(--color-hoja);
-    background-image:
-      linear-gradient(
-        to right,
-        transparent 1.75rem,
-        var(--color-margen) 1.75rem,
-        var(--color-margen) calc(1.75rem + 1.5px),
-        transparent calc(1.75rem + 1.5px)
-      ),
-      linear-gradient(to right, var(--color-cuadricula) 1px, transparent 1px),
-      linear-gradient(to bottom, var(--color-cuadricula) 1px, transparent 1px);
-    background-size:
-      100% 100%,
-      1.25rem 1.25rem,
-      1.25rem 1.25rem;
+    background-image: linear-gradient(
+      to right,
+      transparent 1.75rem,
+      var(--color-margen) 1.75rem,
+      var(--color-margen) calc(1.75rem + 1.5px),
+      transparent calc(1.75rem + 1.5px)
+    );
   }
 
   /* Pasada de resaltador: bordes algo torcidos, como un trazo hecho a mano */
@@ -154,28 +150,28 @@
 :where(input:not([type='checkbox'], [type='radio']), select, textarea).border-b-2:not(
     [aria-invalid='true']
   ):focus {
-  border-color: var(--color-birome);
+  border-color: var(--color-cafe);
 }
 :where(input:not([type='checkbox'], [type='radio']), select, textarea).border-b-2:focus {
-  background-color: color-mix(in srgb, var(--color-celeste) 70%, transparent);
+  background-color: color-mix(in srgb, var(--color-arena) 70%, transparent);
 }
 :where(input, select, textarea):disabled {
   cursor: not-allowed;
   opacity: 0.6;
 }
 
-/* Calendario (FullCalendar) sobre hoja cuadriculada */
+/* Calendario (FullCalendar) con la identidad del cuaderno */
 .calendario-cuaderno .fc {
   --fc-border-color: var(--color-cuadricula);
   --fc-page-bg-color: var(--color-hoja);
-  --fc-neutral-bg-color: var(--color-celeste);
-  --fc-today-bg-color: color-mix(in srgb, var(--color-resaltador) 24%, transparent);
-  --fc-now-indicator-color: var(--color-rojo);
-  --fc-non-business-color: color-mix(in srgb, var(--color-celeste) 80%, transparent);
+  --fc-neutral-bg-color: var(--color-arena);
+  --fc-today-bg-color: color-mix(in srgb, var(--color-resaltador) 45%, transparent);
+  --fc-now-indicator-color: var(--color-madera);
+  --fc-non-business-color: color-mix(in srgb, var(--color-arena) 70%, transparent);
   --fc-bg-event-color: var(--color-linea);
   --fc-bg-event-opacity: 0.35;
   --fc-event-bg-color: var(--color-hoja);
-  --fc-event-border-color: var(--color-birome);
+  --fc-event-border-color: var(--color-cafe);
   --fc-event-text-color: var(--color-tinta);
   font-family: var(--font-sans);
   font-size: 0.875rem;
@@ -188,7 +184,7 @@
   font-family: var(--font-mano);
   font-size: 1.625rem;
   font-weight: 700;
-  color: var(--color-birome);
+  color: var(--color-tinta);
 }
 .calendario-cuaderno .fc .fc-toolbar-title::first-letter {
   text-transform: uppercase;
@@ -207,20 +203,20 @@
     color 150ms ease-out;
 }
 .calendario-cuaderno .fc .fc-button:hover {
-  background: var(--color-celeste);
+  background: var(--color-arena);
   color: var(--color-tinta);
 }
 .calendario-cuaderno .fc .fc-button-active,
 .calendario-cuaderno .fc .fc-button-active:hover {
-  background: var(--color-birome) !important;
+  background: var(--color-cafe) !important;
   color: var(--color-hoja) !important;
-  border-color: var(--color-birome) !important;
+  border-color: var(--color-cafe) !important;
 }
 .calendario-cuaderno .fc .fc-button:disabled {
   opacity: 0.55;
 }
 .calendario-cuaderno .fc .fc-button:focus-visible {
-  outline: 3px solid var(--color-birome);
+  outline: 3px solid var(--color-cafe);
   outline-offset: 2px;
   box-shadow: none;
 }
@@ -246,8 +242,8 @@
 }
 /* Estados por forma y no solo por color */
 .calendario-cuaderno .evento-realizado {
-  background: var(--color-birome);
-  border-color: var(--color-birome);
+  background: var(--color-cafe);
+  border-color: var(--color-cafe);
   --fc-event-text-color: var(--color-hoja);
 }
 .calendario-cuaderno .evento-realizado .fc-event-main {

@@ -113,9 +113,9 @@ export function PantallaAnotaciones() {
               <section
                 key={col}
                 aria-labelledby={`col-${col}`}
-                className="flex flex-col gap-2 rounded-trazo-2 border border-linea bg-celeste/40 p-3"
+                className="flex flex-col gap-2 rounded-trazo-2 border border-linea bg-arena/40 p-3"
               >
-                <h2 id={`col-${col}`} className="font-mano text-3xl font-bold text-birome">
+                <h2 id={`col-${col}`} className="font-mano text-3xl font-bold text-cafe">
                   {NOMBRE_ESTADO_TAREA[col]}{' '}
                   <span className="text-xl text-lapiz">({delEstado.length})</span>
                 </h2>

@@ -6,11 +6,11 @@ const BASE =
 
 /**
  * Cada estado se distingue por su forma y no solo por el color:
- * realizado relleno en birome con tilde, ausente con borde punteado en rojo, cancelado tachado en lápiz.
+ * realizado relleno en cafe con tilde, ausente con borde punteado en rojo, cancelado tachado en lápiz.
  */
 const ESTADOS_TURNO: Record<EstadoTurno, { clase: string; texto: string; marca?: string }> = {
   PROGRAMADO: { clase: 'border-linea bg-hoja text-tinta', texto: 'Programado' },
-  REALIZADO: { clase: 'border-birome bg-birome text-hoja', texto: 'Realizado', marca: '✓' },
+  REALIZADO: { clase: 'border-cafe bg-cafe text-hoja', texto: 'Realizado', marca: '✓' },
   AUSENTE: { clase: 'border-2 border-dotted border-rojo bg-hoja text-rojo', texto: 'Ausente' },
   CANCELADO: { clase: 'border-linea bg-hoja text-lapiz line-through', texto: 'Cancelado' },
 };
@@ -31,7 +31,7 @@ const SIGNOS: Record<PrioridadTarea, { signos: string; texto: string }> = {
   ALTA: { signos: '!!!', texto: 'Prioridad alta' },
 };
 
-/** Prioridad marcada en el margen con signos de exclamación escritos en birome roja */
+/** Prioridad marcada en el margen con signos de exclamación escritos en cafe roja */
 export function MarcaPrioridad({ prioridad }: { prioridad: PrioridadTarea }) {
   const p = SIGNOS[prioridad];
   return (

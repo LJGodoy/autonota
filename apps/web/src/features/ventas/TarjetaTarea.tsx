@@ -25,7 +25,7 @@ export function TarjetaTarea({ tarea, alCambiarEstado, alAbrir }: Props) {
             ? `Marcar «${tarea.titulo}» como pendiente`
             : `Marcar «${tarea.titulo}» como realizada`
         }
-        className="mt-1 size-5 shrink-0 accent-birome"
+        className="mt-1 size-5 shrink-0 accent-cafe"
       />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <button

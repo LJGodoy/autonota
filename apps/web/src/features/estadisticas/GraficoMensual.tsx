@@ -12,16 +12,15 @@ import type { Estadisticas } from '@autonota/shared';
 import { formatearPesos } from '../../lib/dinero';
 import { formatearMes, formatearMesCorto } from '../../lib/meses';
 
-// Paleta de birome sobre la hoja (#FCFDFF): azul para ingresos y rojo para gastos, que se
-// distinguen también con daltonismo rojo-verde por luminosidad. Los gastos llevan además rayado
-// diagonal, para no depender solo del color.
-const HOJA = '#FCFDFF';
-const BIROME = '#2539B0';
+// Verde para lo que entra y rojo para lo que sale, sobre la hoja blanca. Los gastos llevan además
+// rayado diagonal, para no depender solo del color.
+const HOJA = '#FFFFFF';
+const VERDE = '#1D6B3F';
 const ROJO = '#B42318';
-const TINTA = '#1B2136';
-const LAPIZ = '#4B5470';
-const LINEA = '#BCC8DC';
-const CUADRICULA = '#DBE5F4';
+const TINTA = '#161311';
+const LAPIZ = '#5E554D';
+const LINEA = '#D6CDC2';
+const CUADRICULA = '#ECE6DE';
 
 const compacto = new Intl.NumberFormat('es-AR', { notation: 'compact', maximumFractionDigits: 1 });
 
@@ -92,7 +91,7 @@ export function GraficoMensual({ datos, etiquetaIngresos, etiquetaGastos, alEleg
                 background: HOJA,
                 border: `1px solid ${LINEA}`,
                 borderRadius: 6,
-                boxShadow: '0 6px 16px -4px rgb(27 33 54 / 0.15)',
+                boxShadow: '0 6px 16px -4px rgb(22 19 17 / 0.12)',
                 fontFamily: 'Atkinson Hyperlegible',
               }}
               labelStyle={{ color: TINTA, fontWeight: 700 }}
@@ -102,7 +101,7 @@ export function GraficoMensual({ datos, etiquetaIngresos, etiquetaGastos, alEleg
             <Bar
               dataKey="ingresos"
               name={etiquetaIngresos}
-              fill={BIROME}
+              fill={VERDE}
               radius={[4, 4, 0, 0]}
               stroke={HOJA}
               strokeWidth={1}

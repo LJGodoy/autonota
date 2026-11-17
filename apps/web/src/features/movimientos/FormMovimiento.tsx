@@ -127,7 +127,7 @@ export function FormMovimiento({
           </label>
           <select
             id="medio-pago"
-            className="min-h-11 border-0 border-b-2 border-tinta bg-transparent px-1 text-base focus:border-birome"
+            className="min-h-11 border-0 border-b-2 border-tinta bg-transparent px-1 text-base focus:border-cafe"
             {...register('medioPago')}
           >
             <option value="">Sin indicar</option>

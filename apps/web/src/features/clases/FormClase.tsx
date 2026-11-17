@@ -76,7 +76,7 @@ export function FormClase({ eid, clase, inicial, alCerrar }: Props) {
           {(['GRUPAL', 'INDIVIDUAL'] as const).map((m) => (
             <label
               key={m}
-              className="flex items-center gap-2 rounded-trazo border border-linea px-3 py-2 has-[:checked]:bg-celeste"
+              className="flex items-center gap-2 rounded-trazo border border-linea px-3 py-2 has-[:checked]:bg-arena"
             >
               <input
                 type="radio"
@@ -86,7 +86,7 @@ export function FormClase({ eid, clase, inicial, alCerrar }: Props) {
                   setModalidad(m);
                   if (m === 'INDIVIDUAL') setElegidos((e) => e.slice(0, 1));
                 }}
-                className="accent-birome"
+                className="accent-cafe"
               />
               {m === 'GRUPAL' ? 'Grupal' : 'Individual'}
             </label>
@@ -131,7 +131,7 @@ export function FormClase({ eid, clase, inicial, alCerrar }: Props) {
                   name="alumnos"
                   checked={elegidos.includes(a.id)}
                   onChange={() => alternar(a.id)}
-                  className="size-5 accent-birome"
+                  className="size-5 accent-cafe"
                 />
                 {a.nombre}
               </label>

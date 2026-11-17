@@ -46,6 +46,8 @@ con sus pestañas propias y con movimientos y estadísticas en común.
 - Nombre: AutoNota.
 - La idea de **cuaderno de trabajo** es un compromiso de marca confirmado por el dueño: el rediseño la
   conserva como metáfora, aunque puede cambiar cómo se representa.
+- Paleta fijada por el dueño: predomina el blanco, con negro y una escala de marrones. Verde y rojo solo
+  donde significan algo (entra o sale dinero, errores). Nada de azul ni de colores llamativos.
 - Voz: español rioplatense, con voseo, directa y amable ("¿Querés verlo antes?").
 
 ## Evidence on Hand

@@ -43,7 +43,7 @@ function HojaDeEjemplo() {
             >
               <span className="montos w-12 shrink-0 text-sm text-lapiz">{r.hora}</span>
               <span className="flex-1 truncate font-bold">{r.texto}</span>
-              <span className={`montos font-bold ${r.gasto ? 'text-rojo' : 'text-birome'}`}>
+              <span className={`montos font-bold ${r.gasto ? 'text-rojo' : 'text-verde'}`}>
                 {r.monto}
               </span>
             </li>
@@ -68,7 +68,7 @@ export function PantallaInicio() {
     <div className="flex flex-col gap-12 py-6 sm:py-10">
       <section className="grid items-center gap-8 md:grid-cols-[1.1fr_1fr] md:gap-12">
         <div className="flex flex-col gap-5">
-          <h1 className="font-mano text-5xl leading-[1.05] font-bold text-birome sm:text-6xl">
+          <h1 className="font-mano text-5xl leading-[1.05] font-bold text-cafe sm:text-6xl">
             Tu cuaderno de trabajo, que hace{' '}
             <span className="resaltado text-tinta">solo las cuentas.</span>
           </h1>
@@ -79,13 +79,13 @@ export function PantallaInicio() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
             <Link
               to="/registro"
-              className="inline-flex min-h-11 items-center justify-center rounded-trazo border border-birome bg-birome px-5 py-2 font-bold text-hoja no-underline shadow-nota transition-colors duration-150 hover:bg-birome-oscura hover:text-hoja"
+              className="inline-flex min-h-11 items-center justify-center rounded-trazo border border-cafe bg-cafe px-5 py-2 font-bold text-hoja no-underline shadow-nota transition-colors duration-150 hover:bg-cafe-oscuro hover:text-hoja"
             >
               Crear mi cuenta
             </Link>
             <Link
               to="/ingresar"
-              className="inline-flex min-h-11 items-center justify-center rounded-trazo border border-linea bg-hoja px-5 py-2 font-bold text-tinta no-underline transition-colors duration-150 hover:border-tinta hover:bg-celeste hover:text-tinta"
+              className="inline-flex min-h-11 items-center justify-center rounded-trazo border border-linea bg-hoja px-5 py-2 font-bold text-tinta no-underline transition-colors duration-150 hover:border-tinta hover:bg-arena hover:text-tinta"
             >
               Ya tengo cuenta
             </Link>
@@ -96,13 +96,13 @@ export function PantallaInicio() {
 
       <section className="grid gap-6 border-t border-cuadricula pt-10 md:grid-cols-[1fr_1.4fr] md:gap-12">
         <div className="flex flex-col gap-3">
-          <h2 className="font-mano text-3xl font-bold text-birome">¿Querés verlo antes?</h2>
+          <h2 className="font-mano text-3xl font-bold text-cafe">¿Querés verlo antes?</h2>
           <p>Probá una cuenta de ejemplo con los tres tipos de negocio cargados.</p>
           <BotonDemo />
         </div>
 
         <section aria-labelledby="tipos" className="flex flex-col gap-4">
-          <h2 id="tipos" className="font-mano text-3xl font-bold text-birome">
+          <h2 id="tipos" className="font-mano text-3xl font-bold text-cafe">
             Tres tipos de negocio
           </h2>
           <ul className="flex flex-col gap-3">

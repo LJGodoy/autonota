@@ -67,7 +67,7 @@ export function FormPersona({ eid, recurso, persona, alCerrar }: Props) {
             id="notas-persona"
             rows={3}
             aria-describedby="aviso-notas"
-            className="w-full border-0 border-b-2 border-tinta bg-transparent px-1 py-2 focus:border-birome"
+            className="w-full border-0 border-b-2 border-tinta bg-transparent px-1 py-2 focus:border-cafe"
             {...register('notas')}
           />
           {/* RNF-07 */}

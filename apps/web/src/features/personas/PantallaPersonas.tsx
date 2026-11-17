@@ -56,7 +56,7 @@ export function PantallaPersonas({
             type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            className="border-0 border-b-2 border-tinta bg-transparent px-1 py-2 focus:border-birome"
+            className="border-0 border-b-2 border-tinta bg-transparent px-1 py-2 focus:border-cafe"
           />
         </div>
         <Boton onClick={() => setAccion({ tipo: 'nueva' })}>+ Nuevo {singular}</Boton>
@@ -69,7 +69,7 @@ export function PantallaPersonas({
               type="button"
               aria-pressed={activo === v}
               onClick={() => setActivo(v)}
-              className={`rounded-trazo border px-3 py-1 text-sm font-bold ${activo === v ? 'border-birome bg-birome text-hoja' : 'border-tinta bg-hoja'}`}
+              className={`rounded-trazo border px-3 py-1 text-sm font-bold ${activo === v ? 'border-cafe bg-cafe text-hoja' : 'border-tinta bg-hoja'}`}
             >
               {v ? 'Activos' : 'Dados de baja'}
             </button>

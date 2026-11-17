@@ -29,7 +29,7 @@ export function PantallaRecuperar() {
 
   return (
     <section className="mx-auto flex max-w-sm flex-col gap-6 py-6">
-      <h1 className="font-mano text-5xl font-bold text-birome">Recuperar contraseña</h1>
+      <h1 className="font-mano text-5xl font-bold text-cafe">Recuperar contraseña</h1>
       {enviado ? (
         <Tarjeta nota>
           <p>

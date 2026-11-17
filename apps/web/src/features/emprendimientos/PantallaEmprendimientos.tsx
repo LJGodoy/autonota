@@ -31,7 +31,7 @@ export function PantallaEmprendimientos() {
         <p className="font-mano text-2xl text-lapiz first-letter:uppercase">
           {formatearFechaLarga()}
         </p>
-        <h1 className="font-mano text-5xl font-bold text-birome">Hola, {usuario?.nombre}</h1>
+        <h1 className="font-mano text-5xl font-bold text-cafe">Hola, {usuario?.nombre}</h1>
       </div>
 
       {lista.length === 0 && !creando && (

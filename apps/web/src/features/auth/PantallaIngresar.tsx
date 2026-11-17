@@ -31,7 +31,7 @@ export function PantallaIngresar() {
 
   return (
     <section className="mx-auto flex max-w-sm flex-col gap-6 py-6">
-      <h1 className="font-mano text-5xl font-bold text-birome">Ingresar</h1>
+      <h1 className="font-mano text-5xl font-bold text-cafe">Ingresar</h1>
       <form onSubmit={alEnviar} noValidate className="flex flex-col gap-5">
         <Campo
           etiqueta="Email"

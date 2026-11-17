@@ -29,7 +29,7 @@ export function PantallaEstadisticas() {
         {
           titulo: plurales.INGRESO,
           valor: formatearPesos(consulta.data.totales.ingresosCentavos),
-          clase: 'text-birome',
+          clase: 'text-verde',
         },
         {
           titulo: 'Gastos',
@@ -107,7 +107,7 @@ export function PantallaEstadisticas() {
 
       {mesElegido && (
         <section aria-labelledby="detalle-mes" className="flex flex-col gap-3">
-          <h2 id="detalle-mes" className="font-mano text-3xl font-bold text-birome">
+          <h2 id="detalle-mes" className="font-mano text-3xl font-bold text-cafe">
             {plurales.INGRESO} de {formatearMes(mesElegido)}
           </h2>
           {detalle.isPending && <Cargando />}

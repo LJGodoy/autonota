@@ -42,7 +42,7 @@ export function FormNuevoEmprendimiento({ alCancelar }: { alCancelar?: () => voi
   return (
     <Tarjeta>
       <form onSubmit={alEnviar} noValidate className="flex flex-col gap-5">
-        <h2 className="font-mano text-3xl font-bold text-birome">Nuevo emprendimiento</h2>
+        <h2 className="font-mano text-3xl font-bold text-cafe">Nuevo emprendimiento</h2>
         <Campo
           etiqueta="Nombre"
           placeholder="Por ejemplo, Peluquería Laura"
@@ -56,12 +56,12 @@ export function FormNuevoEmprendimiento({ alCancelar }: { alCancelar?: () => voi
           {TIPOS_EMPRENDIMIENTO.map((tipo) => (
             <label
               key={tipo}
-              className="flex cursor-pointer items-start gap-3 rounded-trazo border border-linea p-3 has-[:checked]:bg-celeste has-[:checked]:border-birome"
+              className="flex cursor-pointer items-start gap-3 rounded-trazo border border-linea p-3 has-[:checked]:bg-arena has-[:checked]:border-cafe"
             >
               <input
                 type="radio"
                 value={tipo}
-                className="mt-1 size-4 accent-birome"
+                className="mt-1 size-4 accent-cafe"
                 {...register('tipo')}
               />
               <span>

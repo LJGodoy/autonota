@@ -58,7 +58,7 @@ export function PantallaAlumnos() {
         marca={(a) =>
           a.activo && a.pagoEnMes !== undefined ? (
             a.pagoEnMes ? (
-              <span className="rounded-trazo border border-birome bg-birome px-2 text-sm font-bold text-hoja">
+              <span className="rounded-trazo border border-cafe bg-cafe px-2 text-sm font-bold text-hoja">
                 ✓ Pagó
               </span>
             ) : (

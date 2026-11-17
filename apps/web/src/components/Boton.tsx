@@ -4,12 +4,12 @@ type Variante = 'primario' | 'secundario' | 'peligro' | 'texto';
 
 const ESTILOS: Record<Variante, string> = {
   primario:
-    'border-birome bg-birome text-hoja shadow-nota hover:border-birome-oscura hover:bg-birome-oscura active:translate-y-px',
+    'border-cafe bg-cafe text-hoja shadow-nota hover:border-cafe-oscuro hover:bg-cafe-oscuro active:translate-y-px',
   secundario:
-    'border-linea bg-hoja text-tinta hover:border-tinta hover:bg-celeste active:translate-y-px',
+    'border-linea bg-hoja text-tinta hover:border-tinta hover:bg-arena active:translate-y-px',
   peligro: 'border-rojo bg-hoja text-rojo hover:bg-rojo hover:text-hoja active:translate-y-px',
   texto:
-    'border-transparent bg-transparent text-birome underline decoration-1 underline-offset-4 hover:bg-celeste hover:text-birome-oscura',
+    'border-transparent bg-transparent text-cafe underline decoration-1 underline-offset-4 hover:bg-arena hover:text-cafe-oscuro',
 };
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -17,7 +17,7 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   cargando?: boolean;
 }
 
-/** Botón de la identidad de cuaderno: birome azul para la acción principal, línea fina para el resto */
+/** Botón de la identidad de cuaderno: cafe azul para la acción principal, línea fina para el resto */
 export function Boton({
   variante = 'primario',
   cargando = false,

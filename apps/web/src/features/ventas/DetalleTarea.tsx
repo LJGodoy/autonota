@@ -68,7 +68,7 @@ export function DetalleTarea({
           </p>
           {t.descripcion && <p>{t.descripcion}</p>}
           <section aria-labelledby="historial-tarea">
-            <h3 id="historial-tarea" className="font-mano text-2xl font-bold text-birome">
+            <h3 id="historial-tarea" className="font-mano text-2xl font-bold text-cafe">
               Historial
             </h3>
             <ol className="flex flex-col gap-1 text-sm">
@@ -84,7 +84,7 @@ export function DetalleTarea({
             </ol>
           </section>
           <section aria-labelledby="ventas-tarea" className="flex flex-col gap-2">
-            <h3 id="ventas-tarea" className="font-mano text-2xl font-bold text-birome">
+            <h3 id="ventas-tarea" className="font-mano text-2xl font-bold text-cafe">
               Ventas · <span className="montos">{formatearPesos(t.totalVendidoCentavos)}</span>
             </h3>
             {t.ventas.length > 0 && (

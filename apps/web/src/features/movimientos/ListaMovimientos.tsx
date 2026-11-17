@@ -48,7 +48,7 @@ export function ListaMovimientos({
                 </p>
               </div>
               <p
-                className={`montos font-bold whitespace-nowrap ${esIngreso ? 'text-birome' : 'text-rojo'}`}
+                className={`montos font-bold whitespace-nowrap ${esIngreso ? 'text-verde' : 'text-rojo'}`}
               >
                 <span className="sr-only">{esIngreso ? 'Ingreso de ' : 'Gasto de '}</span>
                 <span aria-hidden="true">{esIngreso ? '+ ' : '− '}</span>
@@ -86,7 +86,7 @@ export function ListaMovimientos({
           className="montos ml-10 grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 border-t border-tinta/70 py-3 pr-3 text-right"
         >
           <dt className="text-lapiz">Entró</dt>
-          <dd className="font-bold text-birome">+ {formatearPesos(cuenta.ingresos)}</dd>
+          <dd className="font-bold text-verde">+ {formatearPesos(cuenta.ingresos)}</dd>
           <dt className="text-lapiz">Salió</dt>
           <dd className="font-bold text-rojo">− {formatearPesos(cuenta.gastos)}</dd>
           <dt className="self-end font-bold">Queda</dt>
