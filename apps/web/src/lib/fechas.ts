@@ -6,6 +6,7 @@ const fechaHora = new Intl.DateTimeFormat('es-AR', {
   day: 'numeric',
   month: 'long',
   hour: '2-digit',
+  hourCycle: 'h23',
   minute: '2-digit',
 });
 

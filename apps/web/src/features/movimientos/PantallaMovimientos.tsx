@@ -10,6 +10,7 @@ import { useEmprendimientoActual } from '../emprendimientos/LayoutEmprendimiento
 import { useMovimientos } from './api';
 import { ETIQUETAS } from './etiquetas';
 import { FormMovimiento } from './FormMovimiento';
+import { FormPago } from '../clases/FormPago';
 import { ListaMovimientos } from './ListaMovimientos';
 import { DialogoEliminarMovimiento } from './DialogoEliminarMovimiento';
 
@@ -97,15 +98,21 @@ export function PantallaMovimientos() {
         </>
       )}
 
-      {formulario && (
-        <FormMovimiento
-          eid={emp.id}
-          tipoNegocio={emp.tipo}
-          tipo={formulario.tipo}
-          movimiento={formulario.movimiento}
-          alCerrar={() => setFormulario(null)}
-        />
-      )}
+      {/* CU-09: en un calendario de clases, un ingreso nuevo es el pago de un alumno */}
+      {formulario &&
+        emp.tipo === 'CLASES' &&
+        formulario.tipo === 'INGRESO' &&
+        !formulario.movimiento && <FormPago eid={emp.id} alCerrar={() => setFormulario(null)} />}
+      {formulario &&
+        !(emp.tipo === 'CLASES' && formulario.tipo === 'INGRESO' && !formulario.movimiento) && (
+          <FormMovimiento
+            eid={emp.id}
+            tipoNegocio={emp.tipo}
+            tipo={formulario.tipo}
+            movimiento={formulario.movimiento}
+            alCerrar={() => setFormulario(null)}
+          />
+        )}
       {eliminando && (
         <DialogoEliminarMovimiento
           eid={emp.id}

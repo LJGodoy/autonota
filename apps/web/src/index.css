@@ -68,3 +68,85 @@
     font-variant-numeric: tabular-nums;
   }
 }
+
+/* Calendario (FullCalendar) con la identidad del cuaderno */
+.calendario-cuaderno .fc {
+  --fc-border-color: var(--color-renglon);
+  --fc-page-bg-color: var(--color-papel);
+  --fc-neutral-bg-color: var(--color-kraft-claro);
+  --fc-today-bg-color: color-mix(in srgb, var(--color-kraft-claro) 60%, transparent);
+  --fc-now-indicator-color: var(--color-madera);
+  --fc-non-business-color: color-mix(in srgb, var(--color-renglon) 55%, transparent);
+  --fc-bg-event-color: var(--color-kraft);
+  --fc-bg-event-opacity: 0.35;
+  --fc-event-bg-color: var(--color-papel);
+  --fc-event-border-color: var(--color-grafito);
+  --fc-event-text-color: var(--color-grafito);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+}
+.calendario-cuaderno .fc .fc-toolbar {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.calendario-cuaderno .fc .fc-toolbar-title {
+  font-family: var(--font-mano);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-cafe);
+}
+.calendario-cuaderno .fc .fc-toolbar-title::first-letter {
+  text-transform: uppercase;
+}
+.calendario-cuaderno .fc .fc-button {
+  background: var(--color-papel);
+  border: 2px solid var(--color-grafito);
+  color: var(--color-grafito);
+  font-weight: 700;
+  border-radius: 10px 4px 10px 4px;
+  text-transform: capitalize;
+}
+.calendario-cuaderno .fc .fc-button:hover,
+.calendario-cuaderno .fc .fc-button-active {
+  background: var(--color-cafe) !important;
+  color: var(--color-papel) !important;
+  border-color: var(--color-grafito) !important;
+}
+.calendario-cuaderno .fc .fc-button:focus-visible {
+  outline: 3px solid var(--color-madera);
+}
+.calendario-cuaderno .fc .fc-col-header-cell-cushion,
+.calendario-cuaderno .fc .fc-daygrid-day-number {
+  color: var(--color-lapiz);
+  text-decoration: none;
+  text-transform: capitalize;
+}
+.calendario-cuaderno .fc-event {
+  border-width: 2px;
+  border-radius: 8px 3px 8px 3px;
+  cursor: pointer;
+}
+/* Estados por forma y no solo por color (Parte 6, sección 5.3) */
+.calendario-cuaderno .evento-realizado {
+  background: var(--color-cafe);
+  border-color: var(--color-cafe);
+  --fc-event-text-color: var(--color-papel);
+}
+.calendario-cuaderno .evento-realizado .fc-event-main {
+  color: var(--color-papel);
+}
+.calendario-cuaderno .evento-ausente {
+  border-style: dotted;
+  border-color: var(--color-madera);
+}
+.calendario-cuaderno .evento-ausente .fc-event-main {
+  color: var(--color-madera);
+}
+.calendario-cuaderno .evento-cancelado {
+  border-color: var(--color-lapiz);
+  opacity: 0.75;
+}
+.calendario-cuaderno .evento-cancelado .fc-event-main {
+  color: var(--color-lapiz);
+  text-decoration: line-through;
+}

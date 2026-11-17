@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from 'react-router';
+import { createBrowserRouter } from 'react-router';
 import { LayoutApp, LayoutPublico, SoloSinSesion } from './Layouts';
 import { PantallaInicio } from '../features/auth/PantallaInicio';
 import { PantallaIngresar } from '../features/auth/PantallaIngresar';
@@ -9,9 +9,41 @@ import { PantallaCuenta } from '../features/auth/PantallaCuenta';
 import { PoliticaPrivacidad } from '../features/legal/PoliticaPrivacidad';
 import { Terminos } from '../features/legal/Terminos';
 import { PantallaEmprendimientos } from '../features/emprendimientos/PantallaEmprendimientos';
-import { LayoutEmprendimiento } from '../features/emprendimientos/LayoutEmprendimiento';
+import {
+  InicioEmprendimiento,
+  LayoutEmprendimiento,
+  SoloTipo,
+} from '../features/emprendimientos/LayoutEmprendimiento';
 import { PantallaMovimientos } from '../features/movimientos/PantallaMovimientos';
+import { PantallaClientes, PantallaHorarios } from '../features/turnero/PantallasTurnero';
+import { PantallaAlumnos } from '../features/clases/PantallaAlumnos';
+import { PantallaAnotaciones } from '../features/ventas/PantallaAnotaciones';
 import { PantallaNoEncontrada } from './PantallaNoEncontrada';
+
+// FullCalendar y Recharts se descargan solo al abrir esas pantallas, para no agrandar la carga inicial
+const agenda = async () => {
+  const { PantallaAgenda } = await import('../features/turnero/PantallaAgenda');
+  return {
+    Component: () => (
+      <SoloTipo tipo="TURNERO">
+        <PantallaAgenda />
+      </SoloTipo>
+    ),
+  };
+};
+const calendario = async () => {
+  const { PantallaCalendarioClases } = await import('../features/clases/PantallaCalendarioClases');
+  return {
+    Component: () => (
+      <SoloTipo tipo="CLASES">
+        <PantallaCalendarioClases />
+      </SoloTipo>
+    ),
+  };
+};
+const estadisticas = async () => ({
+  Component: (await import('../features/estadisticas/PantallaEstadisticas')).PantallaEstadisticas,
+});
 
 export const router = createBrowserRouter([
   {
@@ -41,16 +73,47 @@ export const router = createBrowserRouter([
         path: '/emprendimientos/:eid',
         element: <LayoutEmprendimiento />,
         children: [
-          { index: true, element: <Navigate to="movimientos" replace /> },
-          { path: 'movimientos', element: <PantallaMovimientos /> },
+          { index: true, element: <InicioEmprendimiento /> },
+          // Turnero (fase 5)
+          { path: 'agenda', lazy: agenda },
           {
-            path: 'estadisticas',
-            // Recharts se descarga solo al abrir las estadísticas, para no agrandar la carga inicial
-            lazy: async () => ({
-              Component: (await import('../features/estadisticas/PantallaEstadisticas'))
-                .PantallaEstadisticas,
-            }),
+            path: 'clientes',
+            element: (
+              <SoloTipo tipo="TURNERO">
+                <PantallaClientes />
+              </SoloTipo>
+            ),
           },
+          {
+            path: 'horarios',
+            element: (
+              <SoloTipo tipo="TURNERO">
+                <PantallaHorarios />
+              </SoloTipo>
+            ),
+          },
+          // Calendario de clases (fase 6)
+          { path: 'calendario', lazy: calendario },
+          {
+            path: 'alumnos',
+            element: (
+              <SoloTipo tipo="CLASES">
+                <PantallaAlumnos />
+              </SoloTipo>
+            ),
+          },
+          // Ventas (fase 7)
+          {
+            path: 'anotaciones',
+            element: (
+              <SoloTipo tipo="VENTAS">
+                <PantallaAnotaciones />
+              </SoloTipo>
+            ),
+          },
+          // Comunes a los tres tipos (fase 4)
+          { path: 'movimientos', element: <PantallaMovimientos /> },
+          { path: 'estadisticas', lazy: estadisticas },
         ],
       },
       { path: '/cuenta', element: <PantallaCuenta /> },

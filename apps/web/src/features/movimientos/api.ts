@@ -48,12 +48,10 @@ export function useEstadisticas(eid: string, desde: string, hasta: string) {
   });
 }
 
+/** Un movimiento cambia estadísticas, cobros de turnos, pagos de alumnos y ventas de tareas */
 function useInvalidar(eid: string) {
   const qc = useQueryClient();
-  return () => {
-    void qc.invalidateQueries({ queryKey: claveMovimientos(eid) });
-    void qc.invalidateQueries({ queryKey: claveEstadisticas(eid) });
-  };
+  return () => void qc.invalidateQueries({ queryKey: ['emprendimientos', eid] });
 }
 
 /** RF-07: el Idempotency-Key se genera al abrir el formulario, así un doble clic no duplica */

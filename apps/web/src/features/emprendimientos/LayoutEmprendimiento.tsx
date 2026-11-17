@@ -1,6 +1,14 @@
 import { useState } from 'react';
-import { Link, NavLink, Outlet, useNavigate, useOutletContext, useParams } from 'react-router';
-import type { Emprendimiento } from '@autonota/shared';
+import {
+  Link,
+  Navigate,
+  NavLink,
+  Outlet,
+  useNavigate,
+  useOutletContext,
+  useParams,
+} from 'react-router';
+import type { Emprendimiento, TipoEmprendimiento } from '@autonota/shared';
 import { Boton } from '../../components/Boton';
 import { Cargando, MensajeError } from '../../components/Estados';
 import { EtiquetaTipo } from '../../components/EtiquetaEstado';
@@ -10,6 +18,46 @@ import { DialogoEliminar, DialogoRenombrar } from './DialogosEmprendimiento';
 /** Emprendimiento elegido, para las pantallas hijas */
 export function useEmprendimientoActual(): Emprendimiento {
   return useOutletContext<Emprendimiento>();
+}
+
+/** Pestañas de cada tipo de negocio; la primera es la que se abre al entrar */
+export const PESTANIAS: Record<TipoEmprendimiento, { ruta: string; texto: string }[]> = {
+  TURNERO: [
+    { ruta: 'agenda', texto: 'Agenda' },
+    { ruta: 'clientes', texto: 'Clientes' },
+    { ruta: 'horarios', texto: 'Horarios' },
+    { ruta: 'movimientos', texto: 'Movimientos' },
+    { ruta: 'estadisticas', texto: 'Estadísticas' },
+  ],
+  CLASES: [
+    { ruta: 'calendario', texto: 'Calendario' },
+    { ruta: 'alumnos', texto: 'Alumnos' },
+    { ruta: 'movimientos', texto: 'Movimientos' },
+    { ruta: 'estadisticas', texto: 'Estadísticas' },
+  ],
+  VENTAS: [
+    { ruta: 'anotaciones', texto: 'Anotaciones' },
+    { ruta: 'movimientos', texto: 'Movimientos' },
+    { ruta: 'estadisticas', texto: 'Estadísticas' },
+  ],
+};
+
+/** Al entrar a un emprendimiento se abre la primera pestaña de su tipo */
+export function InicioEmprendimiento() {
+  const emp = useEmprendimientoActual();
+  return <Navigate to={PESTANIAS[emp.tipo][0]!.ruta} replace />;
+}
+
+/** Evita abrir por URL una pestaña de otro tipo de negocio */
+export function SoloTipo({
+  tipo,
+  children,
+}: {
+  tipo: TipoEmprendimiento;
+  children: React.ReactNode;
+}) {
+  const emp = useEmprendimientoActual();
+  return emp.tipo === tipo ? children : <InicioEmprendimiento />;
 }
 
 /** Pantalla de trabajo de un emprendimiento: encabezado, pestañas y la sección elegida */
@@ -59,14 +107,13 @@ export function LayoutEmprendimiento() {
 
       <nav
         aria-label="Secciones del emprendimiento"
-        className="flex gap-1 overflow-x-auto border-b-2 border-grafito"
+        className="flex gap-1 overflow-x-auto overflow-y-hidden border-b-2 border-grafito [scrollbar-width:none]"
       >
-        <NavLink to="movimientos" className={pestania}>
-          Movimientos
-        </NavLink>
-        <NavLink to="estadisticas" className={pestania}>
-          Estadísticas
-        </NavLink>
+        {PESTANIAS[emp.tipo].map((p) => (
+          <NavLink key={p.ruta} to={p.ruta} className={pestania}>
+            {p.texto}
+          </NavLink>
+        ))}
       </nav>
 
       <Outlet context={emp} />

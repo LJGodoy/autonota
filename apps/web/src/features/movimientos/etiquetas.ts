@@ -3,13 +3,13 @@ import type { Movimiento, TipoEmprendimiento, TipoMovimiento } from '@autonota/s
 /** Qué cuenta como ingreso y como gasto en cada tipo de negocio (Parte 1, sección 6.5) */
 export const ETIQUETAS: Record<TipoEmprendimiento, Record<TipoMovimiento, string>> = {
   TURNERO: { INGRESO: 'Cobro', GASTO: 'Compra de insumos' },
-  CLASES: { INGRESO: 'Ingreso', GASTO: 'Gasto' },
+  CLASES: { INGRESO: 'Pago', GASTO: 'Gasto' },
   VENTAS: { INGRESO: 'Venta', GASTO: 'Gasto' },
 };
 
 export const PLURALES: Record<TipoEmprendimiento, Record<TipoMovimiento, string>> = {
   TURNERO: { INGRESO: 'Cobros', GASTO: 'Compras de insumos' },
-  CLASES: { INGRESO: 'Ingresos', GASTO: 'Gastos' },
+  CLASES: { INGRESO: 'Pagos', GASTO: 'Gastos' },
   VENTAS: { INGRESO: 'Ventas', GASTO: 'Gastos' },
 };
 

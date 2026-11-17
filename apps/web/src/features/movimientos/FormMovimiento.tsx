@@ -38,11 +38,22 @@ interface Props {
   tipo: TipoMovimiento;
   /** Si viene, el formulario corrige ese movimiento */
   movimiento?: Movimiento;
+  /** RF-55: venta vinculada a una tarea */
+  tareaId?: string;
+  descripcionInicial?: string;
   alCerrar: () => void;
 }
 
 /** Alta y corrección de ingresos y gastos, con medio de pago opcional (RF-07) */
-export function FormMovimiento({ eid, tipoNegocio, tipo, movimiento, alCerrar }: Props) {
+export function FormMovimiento({
+  eid,
+  tipoNegocio,
+  tipo,
+  movimiento,
+  tareaId,
+  descripcionInicial,
+  alCerrar,
+}: Props) {
   // Se genera una sola vez al abrir el formulario (Parte 6, sección 5.2)
   const [clave] = useState(() => crypto.randomUUID());
   const [errorGeneral, setErrorGeneral] = useState('');
@@ -53,7 +64,7 @@ export function FormMovimiento({ eid, tipoNegocio, tipo, movimiento, alCerrar }:
     defaultValues: {
       monto: movimiento ? formatearPesos(movimiento.montoCentavos).replace(/[^\d,.]/g, '') : '',
       fecha: movimiento?.fecha ?? hoyArgentina(),
-      descripcion: movimiento?.descripcion ?? '',
+      descripcion: movimiento?.descripcion ?? descripcionInicial ?? '',
       medioPago: movimiento?.medioPago ?? '',
     },
   });
@@ -69,7 +80,11 @@ export function FormMovimiento({ eid, tipoNegocio, tipo, movimiento, alCerrar }:
     };
     try {
       if (movimiento) await editar.mutateAsync({ id: movimiento.id, datos: comunes });
-      else await crear.mutateAsync({ datos: { tipo, ...comunes }, clave });
+      else
+        await crear.mutateAsync({
+          datos: { tipo, ...comunes, ...(tareaId ? { tareaId } : {}) },
+          clave,
+        });
       alCerrar();
     } catch (e) {
       setErrorGeneral(aplicarErroresApi(e, setError, ['fecha', 'descripcion', 'medioPago']));
