@@ -13,6 +13,7 @@ import { JwtAuthGuard } from './common/auth/jwt-auth.guard';
 import { AuthModule } from './modules/auth/auth.module';
 import { EmprendimientosModule } from './modules/emprendimientos/emprendimientos.module';
 import { HealthController } from './modules/health/health.controller';
+import { DiagnosticoIpController } from './modules/health/diagnostico-ip.controller';
 
 @Module({
   imports: [
@@ -57,7 +58,7 @@ import { HealthController } from './modules/health/health.controller';
     AuthModule,
     EmprendimientosModule,
   ],
-  controllers: [HealthController],
+  controllers: [HealthController, DiagnosticoIpController],
   providers: [
     { provide: APP_PIPE, useClass: ZodValidationPipe },
     { provide: APP_FILTER, useClass: ErroresFilter },
