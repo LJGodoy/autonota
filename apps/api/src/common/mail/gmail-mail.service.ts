@@ -8,6 +8,27 @@ export interface CredencialesGmail {
   remitente: string;
 }
 
+/**
+ * Motivo del error que devuelve Google (por ejemplo invalid_grant o "Gmail API has not been used").
+ * Solo se toman los campos de error y el texto se recorta: nunca incluye credenciales.
+ */
+async function motivoGoogle(res: Response): Promise<string> {
+  try {
+    const cuerpo = (await res.json()) as {
+      error?: string | { status?: string; message?: string };
+      error_description?: string;
+    };
+    const error = cuerpo.error;
+    const texto =
+      typeof error === 'string'
+        ? `${error}${cuerpo.error_description ? ` (${cuerpo.error_description})` : ''}`
+        : `${error?.status ?? ''} ${error?.message ?? ''}`.trim();
+    return texto.slice(0, 300) || 'sin detalle';
+  } catch {
+    return 'sin detalle';
+  }
+}
+
 /** Codifica un encabezado con caracteres no ASCII (RFC 2047) */
 function encabezado(texto: string): string {
   // eslint-disable-next-line no-control-regex
@@ -57,7 +78,11 @@ export class GmailMailService extends MailService {
       headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ raw: Buffer.from(mime).toString('base64url') }),
     });
-    if (!res.ok) throw new Error(`Gmail respondió ${res.status} al enviar el mail`);
+    if (!res.ok) {
+      throw new Error(
+        `Gmail respondió ${res.status} al enviar el mail: ${await motivoGoogle(res)}`,
+      );
+    }
   }
 
   private async obtenerAccessToken(): Promise<string> {
@@ -71,7 +96,11 @@ export class GmailMailService extends MailService {
         grant_type: 'refresh_token',
       }),
     });
-    if (!res.ok) throw new Error(`Google OAuth respondió ${res.status} al renovar el token`);
+    if (!res.ok) {
+      throw new Error(
+        `Google OAuth respondió ${res.status} al renovar el token: ${await motivoGoogle(res)}`,
+      );
+    }
     const datos = (await res.json()) as { access_token?: string };
     if (!datos.access_token) throw new Error('Google OAuth no devolvió access_token');
     return datos.access_token;

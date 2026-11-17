@@ -124,4 +124,31 @@ describe('GmailMailService', () => {
       servicio.enviar({ para: 'x@y.com', asunto: 'a', texto: 't', html: 'h' }),
     ).rejects.toThrow();
   });
+
+  it('debería incluir el motivo de Google en el error, sin las credenciales', async () => {
+    const fetchFalso = jest.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            error: 'invalid_grant',
+            error_description: 'Token has been expired or revoked.',
+          }),
+          { status: 400 },
+        ),
+    );
+    const servicio = new GmailMailService(
+      {
+        clientId: 'id-secreto',
+        clientSecret: 'secreto',
+        refreshToken: 'token-secreto',
+        remitente: 'a@b.com',
+      },
+      fetchFalso as unknown as typeof fetch,
+    );
+    const error = await servicio
+      .enviar({ para: 'x@y.com', asunto: 'a', texto: 't', html: 'h' })
+      .catch((e: Error) => e);
+    expect(String(error)).toContain('invalid_grant (Token has been expired or revoked.)');
+    expect(String(error)).not.toMatch(/secreto/);
+  });
 });
