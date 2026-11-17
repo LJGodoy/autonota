@@ -4,15 +4,32 @@ Sistema web gratuito, en español y en pesos argentinos, para que trabajadores a
 turnos, clases o tareas y registren ingresos y gastos. Se ve como un cuaderno de trabajo escrito a lápiz.
 
 La especificación completa está en el documento de diseño (SDD v1.2). Este repositorio implementa
-las **fases 1 y 2**: base del proyecto, cuenta, sesión, emprendimientos y cuentas de demostración.
+las **fases 1 a 3**: base del proyecto, cuenta, sesión, emprendimientos, cuentas de demostración
+y publicación.
 
-| Fase | Contenido                                                                   | Estado                       |
-| ---- | --------------------------------------------------------------------------- | ---------------------------- |
-| 1    | Monorepo, tooling, esquema y migración, base de API y SPA, identidad visual | Hecha                        |
-| 2    | Cuenta, sesión, emprendimientos, demo (RF-01 a RF-06, RF-08, RF-09)         | Hecha                        |
-| 3    | Publicación en Vercel, Render y Neon                                        | Pendiente (requiere cuentas) |
-| 4-7  | Movimientos y estadísticas, turnero, clases, ventas                         | Pendientes                   |
-| 8    | Playwright contra el entorno publicado, cierre                              | Pendiente                    |
+**Demo publicada:** https://autonota-two.vercel.app (API: https://autonota-api.onrender.com/api/docs)
+
+| Fase | Contenido                                                                   | Estado     |
+| ---- | --------------------------------------------------------------------------- | ---------- |
+| 1    | Monorepo, tooling, esquema y migración, base de API y SPA, identidad visual | Hecha      |
+| 2    | Cuenta, sesión, emprendimientos, demo (RF-01 a RF-06, RF-08, RF-09)         | Hecha      |
+| 3    | Publicación en Vercel, Render y Neon                                        | Hecha      |
+| 4-7  | Movimientos y estadísticas, turnero, clases, ventas                         | Pendientes |
+| 8    | Playwright contra el entorno publicado, cierre                              | Pendiente  |
+
+## Entorno publicado (ADR-010)
+
+| Pieza   | Servicio                                                           | Notas                                    |
+| ------- | ------------------------------------------------------------------ | ---------------------------------------- |
+| SPA     | Vercel (`apps/web`, preset Vite)                                   | `vercel.json` reenvía `/api/*` a Render  |
+| API     | Render (Docker, `apps/api/Dockerfile`, región Ohio, plan gratuito) | Aplica las migraciones al arrancar       |
+| Base    | Neon (PostgreSQL 16, conexión directa sin pooling)                 | Región AWS US East (Ohio)                |
+| Mails   | API de Gmail con OAuth (ADR-011)                                   | Los mails pueden llegar a spam (SDD 0.7) |
+| Errores | Sentry, un proyecto para la API y otro para la SPA                 |                                          |
+| Ping    | cron-job.org cada 10 minutos a `/api/v1/health`                    | Evita que Render suspenda la API         |
+
+Las variables de entorno se cargan en los paneles de Render (API) y Vercel (`VITE_SENTRY_DSN`),
+nunca en el repositorio. Cada push a `main` publica automáticamente en los dos servicios.
 
 ## Requisitos
 
