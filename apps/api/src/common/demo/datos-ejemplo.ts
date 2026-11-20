@@ -150,13 +150,9 @@ async function cargarTurnero(
       const duracion = elegir([45, 60, 90]);
       const fin = new Date(inicio.getTime() + duracion * 60000);
       const esPasado = fin < ahora;
-      let estado: 'PROGRAMADO' | 'REALIZADO' | 'AUSENTE' | 'CANCELADO' = 'PROGRAMADO';
-      if (esPasado) {
-        const r = azar();
-        estado = r < 0.84 ? 'REALIZADO' : r < 0.92 ? 'AUSENTE' : 'CANCELADO';
-      } else if (azar() < 0.05) {
-        estado = 'CANCELADO';
-      }
+      // Sin CANCELADO: cancelar un turno lo borra, así que no se generan
+      let estado: 'PROGRAMADO' | 'REALIZADO' | 'AUSENTE' = 'PROGRAMADO';
+      if (esPasado) estado = azar() < 0.9 ? 'REALIZADO' : 'AUSENTE';
       const id = randomUUID();
       turnos.push({
         id,
@@ -242,29 +238,55 @@ async function cargarClases(
     'Florencia Ruiz',
     'Nicolás Vega',
     'Paula Sosa',
+    'Mateo Giménez',
+    'Agustina Rojas',
+    'Santiago Benítez',
+    'Valentina Ortiz',
+    'Lautaro Domínguez',
+    'Milagros Acosta',
+    'Franco Villalba',
+    'Rocío Bustos',
+    'Bruno Correa',
+    'Antonella Peralta',
   ];
   const alumnos = nombres.map((nombre, i) => ({
     id: randomUUID(),
     emprendimientoId: emp.id,
     nombre,
     telefono: `11 4${String(200 + i * 41).padStart(3, '0')}-${String(3000 + i * 97)}`,
-    activo: i !== 5,
+    activo: ![5, 15].includes(i),
   }));
   await db.alumno.createMany({ data: alumnos });
   const activos = alumnos.filter((a) => a.activo);
 
   // RF-31: clases semanales desde 3 semanas atrás hasta la semana que viene
-  const grupo = activos.slice(0, 3).map((a) => a.id);
-  const grupo2 = activos.slice(2, 5).map((a) => a.id);
+  const grupoA = activos.slice(0, 5).map((a) => a.id);
+  const grupoB = activos.slice(4, 9).map((a) => a.id);
+  const grupoC = activos.slice(8, 14).map((a) => a.id);
   const plantilla = [
-    { dia: 0, h: 18, titulo: 'Tenis inicial', modalidad: 'GRUPAL' as const, alumnos: grupo },
-    { dia: 2, h: 18, titulo: 'Tenis intermedio', modalidad: 'GRUPAL' as const, alumnos: grupo2 },
+    { dia: 0, h: 18, titulo: 'Tenis inicial', modalidad: 'GRUPAL' as const, alumnos: grupoA },
+    {
+      dia: 1,
+      h: 10,
+      titulo: 'Clase particular',
+      modalidad: 'INDIVIDUAL' as const,
+      alumnos: [activos[10]!.id],
+    },
+    { dia: 2, h: 18, titulo: 'Tenis intermedio', modalidad: 'GRUPAL' as const, alumnos: grupoB },
     {
       dia: 3,
       h: 10,
       titulo: 'Clase particular',
       modalidad: 'INDIVIDUAL' as const,
       alumnos: [activos[3]!.id],
+    },
+    { dia: 4, h: 19, titulo: 'Tenis avanzado', modalidad: 'GRUPAL' as const, alumnos: grupoC },
+    {
+      dia: 5,
+      h: 9,
+      titulo: 'Clase particular',
+      modalidad: 'INDIVIDUAL' as const,
+      alumnos: [activos[7]!.id],
     },
   ];
   const lunesActual = lunesDeLaSemana(hoy);
@@ -295,7 +317,7 @@ async function cargarClases(
   for (let m = 4; m >= 0; m--) {
     const mes = primerDiaDelMes(addMonths(hoy, -m));
     for (const [i, alumno] of activos.entries()) {
-      if (m === 0 && i >= 2) continue;
+      if (m === 0 && i >= 7) continue;
       // El primero de cada mes paga a principios del mes siguiente (cuenta en el mes asignado)
       const fecha =
         i === 0 && m > 0 ? addDays(primerDiaDelMes(addMonths(mes, 1)), 2) : addDays(mes, 3 + i);
@@ -383,6 +405,104 @@ async function cargarVentas(
       prioridad: 'BAJA',
       dias: 12,
     },
+    {
+      titulo: 'Cumpleaños infantil: 20 cupcakes',
+      descripcion: 'Dulce de leche, entrega el viernes',
+      estado: 'PENDIENTE',
+      prioridad: 'ALTA',
+      dias: 0,
+    },
+    {
+      titulo: 'Presupuesto para casamiento',
+      descripcion: 'Torta de 4 pisos, 120 porciones',
+      estado: 'EN_CURSO',
+      prioridad: 'ALTA',
+      dias: 5,
+    },
+    {
+      titulo: 'Arreglar horno de convección',
+      descripcion: 'Llamar al técnico',
+      estado: 'PENDIENTE',
+      prioridad: 'ALTA',
+      dias: 2,
+    },
+    {
+      titulo: 'Entrega de tortas a oficina',
+      descripcion: 'Piso 8, 15 porciones',
+      estado: 'REALIZADA',
+      prioridad: 'ALTA',
+      dias: 3,
+    },
+    {
+      titulo: 'Actualizar lista de precios',
+      descripcion: 'Subir 8 % por inflación',
+      estado: 'PENDIENTE',
+      prioridad: 'MEDIA',
+      dias: 7,
+    },
+    {
+      titulo: 'Cotizar packaging con imprenta',
+      descripcion: null,
+      estado: 'EN_CURSO',
+      prioridad: 'MEDIA',
+      dias: 11,
+    },
+    {
+      titulo: 'Facturas para el café de la esquina',
+      descripcion: '3 docenas por semana',
+      estado: 'REALIZADA',
+      prioridad: 'MEDIA',
+      dias: 15,
+    },
+    {
+      titulo: 'Degustación para nuevo cliente',
+      descripcion: 'Tres sabores de torta',
+      estado: 'EN_CURSO',
+      prioridad: 'MEDIA',
+      dias: 4,
+    },
+    {
+      titulo: 'Tarta de frutillas para el cumple de Rocío',
+      descripcion: null,
+      estado: 'REALIZADA',
+      prioridad: 'MEDIA',
+      dias: 45,
+    },
+    {
+      titulo: 'Probar receta de alfajores de maicena',
+      descripcion: null,
+      estado: 'EN_CURSO',
+      prioridad: 'BAJA',
+      dias: 9,
+    },
+    {
+      titulo: 'Pastafrola para el club',
+      descripcion: 'Membrillo, 4 unidades',
+      estado: 'REALIZADA',
+      prioridad: 'BAJA',
+      dias: 20,
+    },
+    {
+      titulo: 'Stock de cajas de cartón',
+      descripcion: null,
+      estado: 'PENDIENTE',
+      prioridad: 'BAJA',
+      dias: 25,
+    },
+    {
+      titulo: 'Cumpleaños de Tomi: torta de Spiderman',
+      descripcion: 'Vainilla, 1,5 kg',
+      estado: 'REALIZADA',
+      prioridad: 'MEDIA',
+      dias: 30,
+    },
+    {
+      titulo: 'Rediseñar cartel de la vidriera',
+      descripcion: null,
+      estado: 'PENDIENTE',
+      prioridad: 'BAJA',
+      dias: 50,
+    },
   ] as const;
 
   const tareas: Prisma.TareaCreateManyInput[] = [];
@@ -454,12 +574,14 @@ async function cargarVentas(
   const { dia: diaHoy } = aHoraArgentina(ahora);
   for (let m = 0; m < 5; m++) {
     const mes = primerDiaDelMes(addMonths(hoy, -m));
-    const cantidad = m === 0 ? Math.min(8, diaHoy) : 10 + Math.floor(azar() * 6);
+    // En el mes actual las ventas caen solo hasta hoy
+    const maxDia = m === 0 ? diaHoy : 28;
+    const cantidad = 10 + Math.floor(azar() * 8);
     for (let i = 0; i < cantidad; i++) {
       const fecha = fechaSinHora(
         mes.getUTCFullYear(),
         mes.getUTCMonth() + 1,
-        1 + Math.floor(azar() * 27),
+        1 + Math.floor(azar() * maxDia),
       );
       if (fecha > hoy) continue;
       ventas.push({
@@ -471,15 +593,34 @@ async function cargarVentas(
         medioPago: elegir(MEDIOS),
       });
     }
-    const fechaGasto = addDays(mes, 2);
-    if (fechaGasto <= hoy) {
+    // Varios gastos por mes, en distintos días
+    const gastos = [
+      { dia: 2, descripcion: 'Materia prima', base: 50000, rango: 30000, medioPago: 'EFECTIVO' },
+      {
+        dia: 9,
+        descripcion: 'Gas y electricidad',
+        base: 18000,
+        rango: 6000,
+        medioPago: 'TRANSFERENCIA',
+      },
+      {
+        dia: 16,
+        descripcion: 'Envases y packaging',
+        base: 12000,
+        rango: 8000,
+        medioPago: 'TARJETA',
+      },
+    ] as const;
+    for (const g of gastos) {
+      const fechaGasto = addDays(mes, g.dia);
+      if (fechaGasto > hoy) continue;
       ventas.push({
         emprendimientoId: emp.id,
         tipo: 'GASTO',
-        montoCentavos: pesosACentavos(Math.round(50000 + azar() * 30000)),
+        montoCentavos: pesosACentavos(Math.round(g.base + azar() * g.rango)),
         fecha: fechaGasto,
-        descripcion: 'Materia prima',
-        medioPago: 'EFECTIVO',
+        descripcion: g.descripcion,
+        medioPago: g.medioPago,
       });
     }
   }

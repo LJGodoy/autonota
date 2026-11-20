@@ -60,7 +60,7 @@ export function FormPago({ eid, alumnoId, alCerrar }: Props) {
   }
 
   return (
-    <Dialogo abierto titulo="Registrar pago" alCerrar={alCerrar}>
+    <Dialogo abierto titulo="Nuevo cobro" alCerrar={alCerrar}>
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
           <label htmlFor="alumno-pago" className="text-sm font-bold text-lapiz">
@@ -131,7 +131,7 @@ export function FormPago({ eid, alumnoId, alCerrar }: Props) {
             Cancelar
           </Boton>
           <Boton cargando={crear.isPending} onClick={() => void guardar()}>
-            Guardar pago
+            Guardar cobro
           </Boton>
         </div>
       </div>

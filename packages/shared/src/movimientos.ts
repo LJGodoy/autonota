@@ -170,6 +170,7 @@ export interface TotalesMes {
   gastosCentavos: number;
   saldoCentavos: number;
   cantidadIngresos: number;
+  cantidadGastos: number;
 }
 
 export interface Estadisticas {

@@ -35,6 +35,7 @@ describe('EstadisticasService', () => {
           gastosCentavos: 8000000,
           saldoCentavos: 44000000,
           cantidadIngresos: 31,
+          cantidadGastos: 2,
         },
         {
           mes: '2026-10',
@@ -42,6 +43,7 @@ describe('EstadisticasService', () => {
           gastosCentavos: 9500000,
           saldoCentavos: 51500000,
           cantidadIngresos: 36,
+          cantidadGastos: 3,
         },
         {
           mes: '2026-11',
@@ -49,6 +51,7 @@ describe('EstadisticasService', () => {
           gastosCentavos: 0,
           saldoCentavos: 0,
           cantidadIngresos: 0,
+          cantidadGastos: 0,
         },
       ],
       totales: {
@@ -56,6 +59,7 @@ describe('EstadisticasService', () => {
         gastosCentavos: 17500000,
         saldoCentavos: 95500000,
         cantidadIngresos: 67,
+        cantidadGastos: 5,
       },
     });
   });

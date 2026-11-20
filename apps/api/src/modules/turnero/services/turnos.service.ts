@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type {
+  BorrarTurnosInput,
   CobroTurnoInput,
   CopiarSemanaInput,
   CrearTurnoInput,
@@ -96,12 +97,30 @@ export class TurnosService {
     );
   }
 
-  /** CU-07 (RF-14): solo un turno PROGRAMADO se cancela; su hora de inicio queda libre */
-  async cancelar(emprendimientoId: string, id: string): Promise<Turno> {
+  /** Cancelar borra el turno (decisión del dueño); solo PROGRAMADO y sin cobros (la FK los protege) */
+  async cancelar(emprendimientoId: string, id: string): Promise<void> {
     const actual = await this.buscarOFallar(emprendimientoId, id);
     if (actual.estado !== 'PROGRAMADO')
-      throw new DomainException('ESTADO_INVALIDO', 'Solo se puede cancelar un turno programado.');
-    return aTurnoDto(await this.repo.actualizar(actual.id, { estado: 'CANCELADO' }));
+      throw new DomainException('ESTADO_INVALIDO', 'Solo se puede borrar un turno programado.');
+    if (actual.cobros.length > 0)
+      throw new DomainException(
+        'ESTADO_INVALIDO',
+        'El turno tiene cobros registrados: eliminalos desde Movimientos antes de borrarlo.',
+      );
+    await this.repo.eliminar(actual.id);
+  }
+
+  /** Borrado masivo de los turnos PROGRAMADO (sin cobros) que empiezan en el rango */
+  async borrarProgramados(
+    emprendimientoId: string,
+    input: BorrarTurnosInput,
+  ): Promise<{ borrados: number }> {
+    const borrados = await this.repo.eliminarProgramados(
+      emprendimientoId,
+      new Date(input.desde),
+      new Date(input.hasta),
+    );
+    return { borrados };
   }
 
   /** RF-14: ausente se aplica a turnos no cancelados, para poder corregir errores */

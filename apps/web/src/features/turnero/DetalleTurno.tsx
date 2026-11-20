@@ -35,14 +35,14 @@ export function DetalleTurno({
   if (paso === 'cancelar') {
     return (
       <Confirmacion
-        titulo="¿Cancelar el turno?"
-        textoConfirmar="Cancelar turno"
+        titulo="¿Borrar el turno?"
+        textoConfirmar="Borrar turno"
         alConfirmar={() => accion.mutateAsync({ id: turno.id, accion: 'cancelar' })}
         alCerrar={alCerrar}
       >
         <p>
           El turno de <strong>{turno.cliente.nombre}</strong> del {formatearFechaHora(turno.inicio)}{' '}
-          queda cancelado y ese horario se libera.
+          se borra y no se puede deshacer.
         </p>
       </Confirmacion>
     );
@@ -87,7 +87,7 @@ export function DetalleTurno({
               Reubicar
             </Boton>
             <Boton variante="peligro" onClick={() => setPaso('cancelar')}>
-              Cancelar turno
+              Borrar turno
             </Boton>
           </>
         )}

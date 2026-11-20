@@ -68,7 +68,11 @@ export function FormMovimiento({
       medioPago: movimiento?.medioPago ?? '',
     },
   });
-  const etiqueta = ETIQUETAS[tipoNegocio][tipo];
+  const etiqueta = ETIQUETAS[tipoNegocio][tipo].toLowerCase();
+  // "Nueva venta" es femenino; el resto de los tipos son masculinos
+  const titulo = movimiento
+    ? `Corregir ${etiqueta}`
+    : `${etiqueta === 'venta' ? 'Nueva' : 'Nuevo'} ${etiqueta}`;
 
   const alEnviar = handleSubmit(async (d) => {
     setErrorGeneral('');
@@ -92,13 +96,7 @@ export function FormMovimiento({
   });
 
   return (
-    <Dialogo
-      abierto
-      titulo={
-        movimiento ? `Corregir ${etiqueta.toLowerCase()}` : `Nuevo: ${etiqueta.toLowerCase()}`
-      }
-      alCerrar={alCerrar}
-    >
+    <Dialogo abierto titulo={titulo} alCerrar={alCerrar}>
       <form onSubmit={alEnviar} noValidate className="flex flex-col gap-4">
         <Campo
           etiqueta="Monto en pesos"

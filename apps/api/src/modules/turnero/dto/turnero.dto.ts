@@ -9,6 +9,7 @@ import {
   esquemaCrearTurno,
   esquemaEditarPersona,
   esquemaEditarTurno,
+  esquemaBorrarTurnos,
   esquemaFiltroPersonas,
   esquemaFiltroTurnos,
   esquemaHorarios,
@@ -32,6 +33,7 @@ export class FiltroClientesDto extends createZodDto(esquemaFiltroPersonas) {}
 export class CrearTurnoDto extends createZodDto(esquemaCrearTurno) {}
 export class EditarTurnoDto extends createZodDto(esquemaEditarTurno) {}
 export class FiltroTurnosDto extends createZodDto(esquemaFiltroTurnos) {}
+export class BorrarTurnosDto extends createZodDto(esquemaBorrarTurnos) {}
 export class CobroTurnoDto extends createZodDto(esquemaCobroTurno) {}
 export class RealizarTurnoDto extends createZodDto(esquemaRealizarTurno) {}
 export class CopiarSemanaDto extends createZodDto(esquemaCopiarSemana) {}

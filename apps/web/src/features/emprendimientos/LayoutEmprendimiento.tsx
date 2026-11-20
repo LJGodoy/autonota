@@ -24,15 +24,15 @@ export function useEmprendimientoActual(): Emprendimiento {
 export const PESTANIAS: Record<TipoEmprendimiento, { ruta: string; texto: string }[]> = {
   TURNERO: [
     { ruta: 'agenda', texto: 'Agenda' },
+    { ruta: 'movimientos', texto: 'Movimientos' },
     { ruta: 'clientes', texto: 'Clientes' },
     { ruta: 'horarios', texto: 'Horarios' },
-    { ruta: 'movimientos', texto: 'Movimientos' },
     { ruta: 'estadisticas', texto: 'Estadísticas' },
   ],
   CLASES: [
     { ruta: 'calendario', texto: 'Calendario' },
-    { ruta: 'alumnos', texto: 'Alumnos' },
     { ruta: 'movimientos', texto: 'Movimientos' },
+    { ruta: 'alumnos', texto: 'Alumnos' },
     { ruta: 'estadisticas', texto: 'Estadísticas' },
   ],
   VENTAS: [

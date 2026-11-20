@@ -253,13 +253,9 @@ describe('turnos', () => {
       .send({ inicio: hora('2027-11-15', '17:30') })
       .expect(409);
 
-    await http().post(`${base}/turnos/${t.body.id}/cancelar`).set(auth(s)).expect(200);
-    await http().post(`${base}/turnos/${t.body.id}/cancelar`).set(auth(s)).expect(409);
-    await http()
-      .patch(`${base}/turnos/${t.body.id}`)
-      .set(auth(s))
-      .send({ duracionMinutos: 30 })
-      .expect(409);
+    await http().delete(`${base}/turnos/${t.body.id}`).set(auth(s)).expect(204);
+    await http().delete(`${base}/turnos/${t.body.id}`).set(auth(s)).expect(404);
+    await http().get(`${base}/turnos/${t.body.id}`).set(auth(s)).expect(404);
     // La hora queda libre para otro turno
     await http()
       .post(`${base}/turnos`)
@@ -305,30 +301,43 @@ describe('turnos', () => {
     await http().post(`${url}/ausente`).set(auth(s)).expect(200);
   });
 
-  it('no debería cambiar el estado de un turno cancelado (CU-08, flujo alternativo)', async () => {
+  it('debería borrar en masa solo los PROGRAMADO sin cobros del rango y no borrar realizados', async () => {
     const { s, base, clienteId } = await nuevoTurnero();
-    const t = await http()
-      .post(`${base}/turnos`)
-      .set(auth(s))
-      .send({ clienteId, inicio: hora('2027-11-15', '11:00'), duracionMinutos: 60 })
-      .expect(201);
-    await http().post(`${base}/turnos/${t.body.id}/cancelar`).set(auth(s)).expect(200);
-    expect(
-      (
-        await http()
-          .post(`${base}/turnos/${t.body.id}/realizar`)
-          .set(auth(s))
-          .send({ cobro: { montoCentavos: 100 } })
-          .expect(409)
-      ).body.error.code,
-    ).toBe('ESTADO_INVALIDO');
-    await http().post(`${base}/turnos/${t.body.id}/ausente`).set(auth(s)).expect(409);
-    // Igual se puede registrar un cobro en cualquier estado
+    const crear = (dia: string, hhmm: string) =>
+      http()
+        .post(`${base}/turnos`)
+        .set(auth(s))
+        .send({ clienteId, inicio: hora(dia, hhmm), duracionMinutos: 60 })
+        .expect(201);
+    const prog = await crear('2027-11-15', '10:00');
+    const realizado = await crear('2027-11-15', '12:00');
+    const ausente = await crear('2027-11-15', '14:00');
+    const conSena = await crear('2027-11-15', '16:00');
+    const otroDia = await crear('2027-11-16', '10:00');
     await http()
-      .post(`${base}/turnos/${t.body.id}/cobros`)
+      .post(`${base}/turnos/${realizado.body.id}/realizar`)
+      .set(auth(s))
+      .send({})
+      .expect(200);
+    await http().post(`${base}/turnos/${ausente.body.id}/ausente`).set(auth(s)).expect(200);
+    await http()
+      .post(`${base}/turnos/${conSena.body.id}/cobros`)
       .set(auth(s))
       .send({ montoCentavos: 100 })
       .expect(201);
+    // Un turno realizado o con cobros no se borra de a uno
+    await http().delete(`${base}/turnos/${realizado.body.id}`).set(auth(s)).expect(409);
+    await http().delete(`${base}/turnos/${conSena.body.id}`).set(auth(s)).expect(409);
+
+    const r = await http()
+      .delete(`${base}/turnos`)
+      .query({ desde: hora('2027-11-15', '00:00'), hasta: hora('2027-11-16', '00:00') })
+      .set(auth(s))
+      .expect(200);
+    expect(r.body).toEqual({ borrados: 1 });
+    await http().get(`${base}/turnos/${prog.body.id}`).set(auth(s)).expect(404);
+    for (const t of [realizado, ausente, conSena, otroDia])
+      await http().get(`${base}/turnos/${t.body.id}`).set(auth(s)).expect(200);
   });
 
   it('debería listar por rango y rechazar rangos de más de 31 días (RF-17)', async () => {
@@ -357,8 +366,8 @@ describe('turnos', () => {
     await crear(clienteId, '2027-11-15', '10:00'); // se copia
     await crear(otro.body.id, '2027-11-16', '10:00'); // cliente inactivo
     await crear(clienteId, '2027-11-17', '10:00'); // cae en bloqueo
-    const cancelado = await crear(clienteId, '2027-11-18', '10:00'); // cancelado: no se copia
-    await http().post(`${base}/turnos/${cancelado.body.id}/cancelar`).set(auth(s)).expect(200);
+    const borrado = await crear(clienteId, '2027-11-18', '10:00'); // borrado: no se copia
+    await http().delete(`${base}/turnos/${borrado.body.id}`).set(auth(s)).expect(204);
     await http().delete(`${base}/clientes/${otro.body.id}`).set(auth(s)).expect(204);
     await http()
       .post(`${base}/bloqueos`)
@@ -429,6 +438,6 @@ describe('aislamiento y tipo de negocio', () => {
         duracionMinutos: 30,
       })
       .expect(201);
-    await http().post(`${duenio.base}/turnos/${t.body.id}/cancelar`).set(auth(intruso)).expect(404);
+    await http().delete(`${duenio.base}/turnos/${t.body.id}`).set(auth(intruso)).expect(404);
   });
 });

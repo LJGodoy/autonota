@@ -1,11 +1,12 @@
 import type { Estadisticas } from '@autonota/shared';
 import { formatearPesos } from '../../lib/dinero';
 import { formatearMes } from '../../lib/meses';
+import { promedioCentavos } from './GraficoMensual';
 
 interface Props {
   estadisticas: Estadisticas;
   etiquetaIngresos: string;
-  etiquetaCantidad: string;
+  nombreIngreso: string;
   mesElegido?: string;
   alElegirMes: (mes: string) => void;
 }
@@ -14,14 +15,14 @@ interface Props {
 export function TablaMeses({
   estadisticas,
   etiquetaIngresos,
-  etiquetaCantidad,
+  nombreIngreso,
   mesElegido,
   alElegirMes,
 }: Props) {
   const celda = 'px-2 py-2 text-right montos whitespace-nowrap';
   return (
     <div className="overflow-x-auto rounded-trazo-2 border border-linea bg-hoja shadow-nota">
-      <table className="w-full min-w-[520px] border-collapse text-sm">
+      <table className="w-full min-w-[900px] border-collapse text-sm">
         <caption className="sr-only">Ingresos, gastos y saldo por mes</caption>
         <thead>
           <tr className="border-b border-tinta/70 bg-arena text-left text-lapiz">
@@ -38,7 +39,16 @@ export function TablaMeses({
               Saldo
             </th>
             <th scope="col" className="px-2 py-2 text-right">
-              {etiquetaCantidad}
+              Cantidad de {nombreIngreso}s
+            </th>
+            <th scope="col" className="px-2 py-2 text-right">
+              Cantidad de gastos
+            </th>
+            <th scope="col" className="px-2 py-2 text-right">
+              Monto por {nombreIngreso}
+            </th>
+            <th scope="col" className="px-2 py-2 text-right">
+              Monto por gasto
             </th>
           </tr>
         </thead>
@@ -62,6 +72,13 @@ export function TablaMeses({
               <td className={`${celda} text-rojo`}>{formatearPesos(m.gastosCentavos)}</td>
               <td className={`${celda} font-bold`}>{formatearPesos(m.saldoCentavos)}</td>
               <td className={celda}>{m.cantidadIngresos}</td>
+              <td className={celda}>{m.cantidadGastos}</td>
+              <td className={`${celda} text-verde`}>
+                {formatearPesos(promedioCentavos(m.ingresosCentavos, m.cantidadIngresos))}
+              </td>
+              <td className={`${celda} text-rojo`}>
+                {formatearPesos(promedioCentavos(m.gastosCentavos, m.cantidadGastos))}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -74,6 +91,23 @@ export function TablaMeses({
             <td className={celda}>{formatearPesos(estadisticas.totales.gastosCentavos)}</td>
             <td className={celda}>{formatearPesos(estadisticas.totales.saldoCentavos)}</td>
             <td className={celda}>{estadisticas.totales.cantidadIngresos}</td>
+            <td className={celda}>{estadisticas.totales.cantidadGastos}</td>
+            <td className={celda}>
+              {formatearPesos(
+                promedioCentavos(
+                  estadisticas.totales.ingresosCentavos,
+                  estadisticas.totales.cantidadIngresos,
+                ),
+              )}
+            </td>
+            <td className={celda}>
+              {formatearPesos(
+                promedioCentavos(
+                  estadisticas.totales.gastosCentavos,
+                  estadisticas.totales.cantidadGastos,
+                ),
+              )}
+            </td>
           </tr>
         </tfoot>
       </table>

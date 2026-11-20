@@ -100,7 +100,22 @@ export function useAccionTurno(eid: string) {
   const invalidar = useInvalidar(eid);
   return useMutation({
     mutationFn: ({ id, accion }: { id: string; accion: 'cancelar' | 'ausente' }) =>
-      api<Turno>(`${base(eid)}/turnos/${id}/${accion}`, { method: 'POST' }),
+      accion === 'cancelar'
+        ? api<void>(`${base(eid)}/turnos/${id}`, { method: 'DELETE' })
+        : api<void>(`${base(eid)}/turnos/${id}/${accion}`, { method: 'POST' }),
+    onSuccess: invalidar,
+  });
+}
+
+/** Borra los turnos PROGRAMADO del rango visible de la agenda */
+export function useBorrarTurnosDelRango(eid: string) {
+  const invalidar = useInvalidar(eid);
+  return useMutation({
+    mutationFn: ({ desde, hasta }: { desde: string; hasta: string }) =>
+      api<{ borrados: number }>(
+        `${base(eid)}/turnos?desde=${encodeURIComponent(desde)}&hasta=${encodeURIComponent(hasta)}`,
+        { method: 'DELETE' },
+      ),
     onSuccess: invalidar,
   });
 }

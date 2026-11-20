@@ -8,11 +8,20 @@ interface Props {
   alAbrir: () => void;
 }
 
+/** Post-it de color por prioridad (rojo, amarillo, verde pastel); la prioridad también va escrita en el margen */
+const FONDO_POSTIT: Record<Tarea['prioridad'], string> = {
+  ALTA: 'bg-postit-alta',
+  MEDIA: 'bg-postit-media',
+  BAJA: 'bg-postit-baja',
+};
+
 /** Anotación con la prioridad en el margen; las realizadas se tachan y su casilla queda marcada */
 export function TarjetaTarea({ tarea, alCambiarEstado, alAbrir }: Props) {
   const hecha = tarea.estado === 'REALIZADA';
   return (
-    <li className="flex gap-2 rounded-trazo border border-linea bg-hoja p-3">
+    <li
+      className={`flex gap-2 rounded-[3px] p-3 text-tinta shadow-nota ${FONDO_POSTIT[tarea.prioridad]}`}
+    >
       <div className="w-8 shrink-0 text-center">
         <MarcaPrioridad prioridad={tarea.prioridad} />
       </div>

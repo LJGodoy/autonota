@@ -1,23 +1,24 @@
-import { Link } from 'react-router';
+import { IconoTipo } from '../../components/IconoTipo';
 import { BotonDemo } from './BotonDemo';
+import { FormIngreso } from './PantallaIngresar';
 
 const TIPOS = [
   {
     titulo: 'Turnero',
     texto: 'Para peluqueros, tatuadores o masajistas: turnos, clientes, cobros e insumos.',
-    tapa: 'bg-tapa-turnero',
+    tipo: 'TURNERO',
   },
   {
     titulo: 'Calendario de clases',
     texto: 'Para profesores: clases individuales o grupales, alumnos y pagos por mes.',
-    tapa: 'bg-tapa-clases',
+    tipo: 'CLASES',
   },
   {
     titulo: 'Ventas',
     texto: 'Para locales y emprendimientos: anotaciones de pedidos, ventas y gastos.',
-    tapa: 'bg-tapa-ventas',
+    tipo: 'VENTAS',
   },
-];
+] as const;
 
 /** Hoja de ejemplo: muestra cómo se anota un día y cómo queda la cuenta al pie (datos inventados) */
 const RENGLONES = [
@@ -56,9 +57,6 @@ function HojaDeEjemplo() {
           </span>
         </div>
       </div>
-      <figcaption className="mt-2 text-sm text-lapiz">
-        Ejemplo con datos inventados. La cuenta la hace AutoNota.
-      </figcaption>
     </figure>
   );
 }
@@ -76,29 +74,21 @@ export function PantallaInicio() {
             AutoNota es gratis y te ayuda a organizar turnos, clases o pedidos, y a saber cuánto
             entra y cuánto sale de tu emprendimiento cada mes.
           </p>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-            <Link
-              to="/registro"
-              className="inline-flex min-h-11 items-center justify-center rounded-trazo border border-cafe bg-cafe px-5 py-2 font-bold text-hoja no-underline shadow-nota transition-colors duration-150 hover:bg-cafe-oscuro hover:text-hoja"
-            >
-              Crear mi cuenta
-            </Link>
-            <Link
-              to="/ingresar"
-              className="inline-flex min-h-11 items-center justify-center rounded-trazo border border-linea bg-hoja px-5 py-2 font-bold text-tinta no-underline transition-colors duration-150 hover:border-tinta hover:bg-arena hover:text-tinta"
-            >
-              Ya tengo cuenta
-            </Link>
-          </div>
         </div>
-        <HojaDeEjemplo />
+        <div className="flex flex-col gap-4 rounded-trazo-2 border border-linea bg-hoja p-5 shadow-nota">
+          <h2 className="font-mano text-3xl font-bold text-cafe">Ingresar</h2>
+          <FormIngreso />
+        </div>
       </section>
 
-      <section className="grid gap-6 border-t border-cuadricula pt-10 md:grid-cols-[1fr_1.4fr] md:gap-12">
-        <div className="flex flex-col gap-3">
-          <h2 className="font-mano text-3xl font-bold text-cafe">¿Querés verlo antes?</h2>
-          <p>Probá una cuenta de ejemplo con los tres tipos de negocio cargados.</p>
-          <BotonDemo />
+      <section className="grid gap-8 border-t border-cuadricula pt-10 md:grid-cols-[1fr_1.4fr] md:gap-12">
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-3">
+            <h2 className="font-mano text-3xl font-bold text-cafe">¿Querés verlo antes?</h2>
+            <p>Probá una cuenta de ejemplo con los tres tipos de negocio cargados.</p>
+            <BotonDemo />
+          </div>
+          <HojaDeEjemplo />
         </div>
 
         <section aria-labelledby="tipos" className="flex flex-col gap-4">
@@ -111,12 +101,8 @@ export function PantallaInicio() {
                 key={t.titulo}
                 className="flex items-start gap-4 rounded-trazo-2 border border-linea bg-hoja p-3"
               >
-                {/* Tapa del cuaderno en miniatura, con su etiqueta blanca */}
-                <span
-                  aria-hidden="true"
-                  className={`relative mt-0.5 h-12 w-9 shrink-0 rounded-[3px_5px_5px_3px] shadow-nota ${t.tapa}`}
-                >
-                  <span className="absolute inset-x-1.5 top-3 h-3 rounded-[2px] bg-hoja/90" />
+                <span className="mt-0.5 text-cafe">
+                  <IconoTipo tipo={t.tipo} />
                 </span>
                 <div>
                   <p className="font-bold">{t.titulo}</p>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 import { MAX_EMPRENDIMIENTOS, type Emprendimiento } from '@autonota/shared';
 import { Boton } from '../../components/Boton';
+import { Dialogo } from '../../components/Dialogo';
 import { Cargando, MensajeError } from '../../components/Estados';
 import { EtiquetaTipo, TAPA } from '../../components/EtiquetaEstado';
 import { formatearFechaLarga } from '../../lib/fechas';
@@ -34,7 +35,7 @@ export function PantallaEmprendimientos() {
         <h1 className="font-mano text-5xl font-bold text-cafe">Hola, {usuario?.nombre}</h1>
       </div>
 
-      {lista.length === 0 && !creando && (
+      {lista.length === 0 && (
         <p className="text-lapiz">
           Todavía no tenés emprendimientos. Creá el primero para empezar a anotar.
         </p>
@@ -86,16 +87,21 @@ export function PantallaEmprendimientos() {
       </p>
 
       {/* CU-04: la SPA oculta el botón cuando ya hay 3; la API valida igual la regla */}
-      {hayCupo &&
-        (creando || lista.length === 0 ? (
-          <FormNuevoEmprendimiento
-            alCancelar={lista.length > 0 ? () => setCreando(false) : undefined}
-          />
-        ) : (
-          <div>
-            <Boton onClick={() => setCreando(true)}>+ Nuevo emprendimiento</Boton>
-          </div>
-        ))}
+      {hayCupo && (
+        <div>
+          <Boton onClick={() => setCreando(true)} aria-label="Nuevo emprendimiento">
+            + Nuevo emprendimiento
+          </Boton>
+        </div>
+      )}
+      <Dialogo
+        abierto={creando}
+        titulo="Nuevo emprendimiento"
+        alCerrar={() => setCreando(false)}
+        ancho="max-w-4xl"
+      >
+        <FormNuevoEmprendimiento alCancelar={() => setCreando(false)} />
+      </Dialogo>
 
       {renombrando && (
         <DialogoRenombrar emprendimiento={renombrando} alCerrar={() => setRenombrando(null)} />

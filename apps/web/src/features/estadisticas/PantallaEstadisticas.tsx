@@ -23,6 +23,7 @@ export function PantallaEstadisticas() {
   // RF-73: monto de cada venta o cobro del mes elegido
   const detalle = useMovimientos(emp.id, { mes: mesElegido, tipo: 'INGRESO' }, Boolean(mesElegido));
   const plurales = PLURALES[emp.tipo];
+  const nombreIngreso = emp.tipo === 'VENTAS' ? 'venta' : 'cobro';
 
   const tarjetas = consulta.data
     ? [
@@ -90,15 +91,14 @@ export function PantallaEstadisticas() {
           ) : (
             <GraficoMensual
               datos={consulta.data.meses}
-              etiquetaIngresos={plurales.INGRESO}
-              etiquetaGastos="Gastos"
+              nombreIngreso={nombreIngreso}
               alElegirMes={setMesElegido}
             />
           )}
           <TablaMeses
             estadisticas={consulta.data}
             etiquetaIngresos={plurales.INGRESO}
-            etiquetaCantidad="Cantidad"
+            nombreIngreso={nombreIngreso}
             mesElegido={mesElegido}
             alElegirMes={setMesElegido}
           />

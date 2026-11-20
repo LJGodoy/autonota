@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Param,
@@ -20,6 +21,7 @@ import {
 import { ClaveIdempotencia } from '../../../common/http/clave-idempotencia.decorator';
 import { TurnosService } from '../services/turnos.service';
 import {
+  BorrarTurnosDto,
   CobroTurnoDto,
   CopiarSemanaDto,
   CrearTurnoDto,
@@ -99,13 +101,25 @@ export class TurnosController {
     return this.servicio.editar(emp.id, id, dto);
   }
 
-  @Post(':id/cancelar')
-  @HttpCode(200)
-  @ApiOperation({ summary: 'Cancela un turno PROGRAMADO (RF-14)' })
+  @Delete()
+  @ApiOperation({
+    summary: 'Borra los turnos PROGRAMADO (sin cobros) que empiezan en el rango: { borrados }',
+  })
+  borrarProgramados(
+    @EmprendimientoActual() emp: EmprendimientoDePeticion,
+    @Query() dto: BorrarTurnosDto,
+  ): Promise<{ borrados: number }> {
+    return this.servicio.borrarProgramados(emp.id, dto);
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Cancelar = borrar un turno PROGRAMADO sin cobros (RF-14)' })
+  @ApiResponse({ status: 409, description: 'ESTADO_INVALIDO' })
   cancelar(
     @EmprendimientoActual() emp: EmprendimientoDePeticion,
     @Param('id') id: string,
-  ): Promise<Turno> {
+  ): Promise<void> {
     return this.servicio.cancelar(emp.id, id);
   }
 

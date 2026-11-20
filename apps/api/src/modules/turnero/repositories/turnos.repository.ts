@@ -55,6 +55,24 @@ export class TurnosRepository {
     return this.prisma.turno.update({ where: { id }, data: datos, include: INCLUIR });
   }
 
+  /** Borra el turno; falla (FK) si tiene cobros */
+  eliminar(id: string): Promise<unknown> {
+    return this.prisma.turno.delete({ where: { id } });
+  }
+
+  /** Borra los PROGRAMADO sin cobros que empiezan en el rango; devuelve cuántos */
+  async eliminarProgramados(emprendimientoId: string, desde: Date, hasta: Date): Promise<number> {
+    const r = await this.prisma.turno.deleteMany({
+      where: {
+        emprendimientoId,
+        estado: 'PROGRAMADO',
+        inicio: { gte: desde, lt: hasta },
+        cobros: { none: {} },
+      },
+    });
+    return r.count;
+  }
+
   /**
    * CU-08: en una transacción bloquea la fila del turno; si no está cancelado lo marca como
    * REALIZADO y, si vino un cobro, inserta el movimiento con turno_id. Devuelve null si estaba

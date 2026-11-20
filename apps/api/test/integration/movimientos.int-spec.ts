@@ -226,6 +226,7 @@ describe('/estadisticas', () => {
         gastosCentavos: 999,
         saldoCentavos: -999,
         cantidadIngresos: 0,
+        cantidadGastos: 1,
       },
       {
         mes: '2026-10',
@@ -233,6 +234,7 @@ describe('/estadisticas', () => {
         gastosCentavos: 0,
         saldoCentavos: 0,
         cantidadIngresos: 0,
+        cantidadGastos: 0,
       },
       {
         mes: '2026-11',
@@ -240,6 +242,7 @@ describe('/estadisticas', () => {
         gastosCentavos: 6000050,
         saldoCentavos: -2000040,
         cantidadIngresos: 2,
+        cantidadGastos: 1,
       },
     ]);
     expect(res.body.totales).toEqual({
@@ -247,6 +250,7 @@ describe('/estadisticas', () => {
       gastosCentavos: 6001049,
       saldoCentavos: -2001039,
       cantidadIngresos: 2,
+      cantidadGastos: 2,
     });
   });
 

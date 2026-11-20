@@ -26,6 +26,11 @@
   --color-margen: #e3d3c1;
   --color-resaltador: #ecdcc8;
 
+  /* Post-its de Ventas por prioridad: excepción aprobada por el dueño a la paleta blanco/negro/marrones */
+  --color-postit-alta: #f9d3cf;
+  --color-postit-media: #fbefb4;
+  --color-postit-baja: #d4edd2;
+
   /* Tapas: barra superior; cada tipo de negocio, un tono de la escala de marrones */
   --color-tapa-general: #161311;
   --color-tapa-turnero: #3b281c;

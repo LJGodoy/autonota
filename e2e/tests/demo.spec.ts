@@ -87,7 +87,7 @@ test.describe.serial('demo con los tres tipos de negocio', () => {
     await fila.getByRole('button', { name: '+ Pago' }).click();
     const dialogo = page.locator('dialog[open]');
     await dialogo.getByLabel('Monto en pesos').fill('40.000');
-    await dialogo.getByRole('button', { name: 'Guardar pago' }).click();
+    await dialogo.getByRole('button', { name: 'Guardar cobro' }).click();
     await expect(dialogo).toBeHidden();
     await expect(page.locator('ul li').filter({ hasText: nombre })).toHaveCount(0);
   });

@@ -52,6 +52,7 @@ export function Calendario(props: Props) {
         nowIndicator
         slotMinTime="07:00:00"
         slotMaxTime="23:00:00"
+        slotEventOverlap={false}
         slotDuration="00:30:00"
         firstDay={1}
         events={props.eventos}

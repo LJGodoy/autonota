@@ -22,6 +22,7 @@ const vacio = (): TotalesMes => ({
   gastosCentavos: 0,
   saldoCentavos: 0,
   cantidadIngresos: 0,
+  cantidadGastos: 0,
 });
 
 @Injectable()
@@ -44,6 +45,7 @@ export class EstadisticasService {
         t.cantidadIngresos = centavosANumero(f.cantidad);
       } else {
         t.gastosCentavos = centavosANumero(f.total);
+        t.cantidadGastos = centavosANumero(f.cantidad);
       }
     }
     const totales = vacio();
@@ -52,6 +54,7 @@ export class EstadisticasService {
       totales.ingresosCentavos += t.ingresosCentavos;
       totales.gastosCentavos += t.gastosCentavos;
       totales.cantidadIngresos += t.cantidadIngresos;
+      totales.cantidadGastos += t.cantidadGastos;
       return { mes, ...t };
     });
     totales.saldoCentavos = totales.ingresosCentavos - totales.gastosCentavos;

@@ -8,7 +8,15 @@ import { ErrorApi } from '../../lib/api';
 import { formatearFechaHora } from '../../lib/fechas';
 import { aHoraLocal, desdeFechaCalendario, lunesDe } from '../../lib/zona';
 import { useEmprendimientoActual } from '../emprendimientos/LayoutEmprendimiento';
-import { useBloqueos, useCopiarSemanaTurnos, useFranjas, useGuardarTurno, useTurnos } from './api';
+import {
+  useBloqueos,
+  useBorrarTurnosDelRango,
+  useCopiarSemanaTurnos,
+  useFranjas,
+  useGuardarTurno,
+  useTurnos,
+} from './api';
+import { Confirmacion } from '../../components/Confirmacion';
 import { CopiarSemana } from '../../components/CopiarSemana';
 import { DetalleTurno } from './DetalleTurno';
 import { FormTurno } from './FormTurno';
@@ -24,11 +32,22 @@ export function PantallaAgenda() {
   } | null>(null);
   const [elegido, setElegido] = useState<string | null>(null);
   const [aviso, setAviso] = useState('');
+  const [borrando, setBorrando] = useState(false);
   const turnos = useTurnos(emp.id, rango.desde, rango.hasta);
   const bloqueos = useBloqueos(emp.id, rango.desde, rango.hasta);
   const franjas = useFranjas(emp.id);
   const reubicar = useGuardarTurno(emp.id);
   const copiar = useCopiarSemanaTurnos(emp.id);
+  const borrar = useBorrarTurnosDelRango(emp.id);
+  const esDia = rango.desde && Date.parse(rango.hasta) - Date.parse(rango.desde) <= 86_400_000;
+  // Mismo criterio que el servidor: PROGRAMADO sin cobros que empiezan en el rango visible
+  const aBorrar = (turnos.data ?? []).filter(
+    (t) =>
+      t.estado === 'PROGRAMADO' &&
+      t.cobros.length === 0 &&
+      Date.parse(t.inicio) >= Date.parse(rango.desde) &&
+      Date.parse(t.inicio) < Date.parse(rango.hasta),
+  ).length;
 
   const eventos = useMemo<EventInput[]>(
     () => [
@@ -68,6 +87,9 @@ export function PantallaAgenda() {
         >
           + Nuevo turno
         </Boton>
+        <Boton variante="peligro" disabled={aBorrar === 0} onClick={() => setBorrando(true)}>
+          {esDia ? 'Borrar turnos del día' : 'Borrar turnos de la semana'}
+        </Boton>
         {rango.lunes && (
           <CopiarSemana
             nombre="turnos"
@@ -101,7 +123,7 @@ export function PantallaAgenda() {
       )}
       <p className="text-sm text-lapiz">
         Tocá un horario libre para dar un turno, o arrastrá un turno programado para reubicarlo. ✓
-        realizado · punteado: no vino · tachado: cancelado.
+        realizado · punteado: no vino.
       </p>
       <Calendario
         vistas={['timeGridDay', 'timeGridWeek']}
@@ -134,7 +156,7 @@ export function PantallaAgenda() {
             });
         }}
         contenidoEvento={(arg) => (
-          <div className="overflow-hidden px-1 leading-tight">
+          <div className="truncate px-1 leading-tight" title={`${arg.timeText} ${arg.event.title}`}>
             <b>
               {arg.event.extendedProps.estado === 'REALIZADO' ? '✓ ' : ''}
               {arg.timeText}
@@ -143,6 +165,21 @@ export function PantallaAgenda() {
           </div>
         )}
       />
+      {borrando && (
+        <Confirmacion
+          titulo={esDia ? '¿Borrar los turnos del día?' : '¿Borrar los turnos de la semana?'}
+          textoConfirmar={`Borrar ${aBorrar} ${aBorrar === 1 ? 'turno' : 'turnos'}`}
+          alConfirmar={() => borrar.mutateAsync({ desde: rango.desde, hasta: rango.hasta })}
+          alCerrar={() => setBorrando(false)}
+        >
+          <p>
+            Se van a borrar <strong>{aBorrar}</strong>{' '}
+            {aBorrar === 1 ? 'turno programado' : 'turnos programados'}{' '}
+            {esDia ? 'de este día' : 'de esta semana'}. No se puede deshacer. Los turnos realizados,
+            los que no vino y los que tienen cobros no se tocan.
+          </p>
+        </Confirmacion>
+      )}
       {nuevo && <FormTurno eid={emp.id} inicial={nuevo} alCerrar={() => setNuevo(null)} />}
       {turnoElegido && (
         <DetalleTurno eid={emp.id} turno={turnoElegido} alCerrar={() => setElegido(null)} />

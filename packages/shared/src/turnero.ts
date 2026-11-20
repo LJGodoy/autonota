@@ -106,6 +106,10 @@ export const esquemaFiltroTurnos = esquemaRango(31).and(
 );
 export type FiltroTurnos = z.infer<typeof esquemaFiltroTurnos>;
 
+/** Borrado masivo de turnos PROGRAMADO que empiezan en el rango (día o semana de la agenda) */
+export const esquemaBorrarTurnos = esquemaRango(31);
+export type BorrarTurnosInput = z.infer<typeof esquemaBorrarTurnos>;
+
 /** RF-16: un cobro del turno (seña, pago parcial o total); la fecha por defecto es hoy */
 export const esquemaCobroTurno = z
   .object({
