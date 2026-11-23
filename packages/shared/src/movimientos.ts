@@ -127,6 +127,8 @@ export interface Movimiento {
   medioPago: MedioPago | null;
   turnoId: string | null;
   alumnoId: string | null;
+  /** Nombre del alumno en los pagos de alumnos; null en el resto */
+  alumnoNombre: string | null;
   tareaId: string | null;
   /** AAAA-MM; solo en los pagos mensuales de alumnos anteriores al pago por clase */
   mesCorrespondiente: string | null;

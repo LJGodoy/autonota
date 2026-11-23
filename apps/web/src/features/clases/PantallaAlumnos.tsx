@@ -27,29 +27,41 @@ export function MarcaPago({ pagada, detalle }: { pagada: boolean; detalle?: stri
   );
 }
 
-/** RF-30 y RF-38 (CU-14): alumnos junto al calendario; tocar uno abre su perfil */
-export function PanelAlumnos({ eid }: { eid: string }) {
+/** RF-30 y RF-38 (CU-14): alumnos con su estado de pago del mes elegido; tocar uno abre su perfil */
+export function PantallaAlumnos() {
+  const emp = useEmprendimientoActual();
   const navegar = useNavigate();
   const [debe, setDebe] = useState(false);
+  const [mes, setMes] = useState(mesActual());
   return (
     <PantallaPersonas
-      eid={eid}
+      eid={emp.id}
       recurso="alumnos"
-      filtro={{ debe }}
-      alAbrir={(a) => void navegar(`alumnos/${a.id}`)}
+      filtro={{ debe, mes }}
+      alAbrir={(a) => void navegar(`${a.id}`)}
       filtrosExtra={
-        <CasillaVerificacion checked={debe} onChange={(e) => setDebe(e.target.checked)}>
-          Solo los que deben
-        </CasillaVerificacion>
+        <>
+          <SelectorMes etiqueta="Estado de pago de" valor={mes} alCambiar={setMes} />
+          <CasillaVerificacion checked={debe} onChange={(e) => setDebe(e.target.checked)}>
+            Solo los que deben
+          </CasillaVerificacion>
+        </>
       }
-      marca={(a) =>
-        a.activo && a.clasesAdeudadas > 0 ? (
+      marca={(a) => {
+        if (!a.activo || a.clasesDelMes === 0) return null;
+        if (a.clasesAdeudadas === 0)
+          return (
+            <span className="rounded-trazo border border-verde bg-verde px-2 text-sm font-bold text-hoja">
+              ✓ Pagó
+            </span>
+          );
+        return (
           <MarcaPago
             pagada={false}
             detalle={`${a.clasesAdeudadas} ${a.clasesAdeudadas === 1 ? 'clase dictada' : 'clases dictadas'} sin pagar`}
           />
-        ) : null
-      }
+        );
+      }}
     />
   );
 }
@@ -71,8 +83,8 @@ export function PantallaPerfilAlumno() {
 
   return (
     <section className="flex flex-col gap-5">
-      <Link to={`/emprendimientos/${emp.id}/calendario`} className="font-bold">
-        ← Volver al calendario
+      <Link to={`/emprendimientos/${emp.id}/alumnos`} className="font-bold">
+        ← Volver a alumnos
       </Link>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>

@@ -21,6 +21,7 @@ export const PESTANIAS: Record<TipoEmprendimiento, { ruta: string; texto: string
   ],
   CLASES: [
     { ruta: 'calendario', texto: 'Calendario' },
+    { ruta: 'alumnos', texto: 'Alumnos' },
     { ruta: 'movimientos', texto: 'Movimientos' },
     { ruta: 'estadisticas', texto: 'Estadísticas' },
   ],

@@ -79,6 +79,8 @@ export const esquemaFiltroAlumnos = z
     q: z.string().trim().max(100).optional(),
     activo: esquemaBooleanoQuery.default('true'),
     debe: esquemaBooleanoQuery.optional(),
+    /** Mira las clases de ese mes (AAAA-MM); sin mes, todas las ya empezadas */
+    mes: esquemaMes.optional(),
     ...esquemaPaginacion,
   })
   .strict();
@@ -108,8 +110,10 @@ export const esquemaPagoClases = z
 export type PagoClasesInput = z.infer<typeof esquemaPagoClases>;
 
 export interface Alumno extends Persona {
-  /** Clases ya empezadas que todavía no pagó */
+  /** Clases ya empezadas que todavía no pagó (del mes pedido, si hay) */
   clasesAdeudadas: number;
+  /** Clases ya empezadas del mes pedido (o todas): 0 si no tuvo ninguna */
+  clasesDelMes: number;
 }
 
 export interface Clase {

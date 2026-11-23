@@ -22,7 +22,9 @@ export const desdeTextoFecha = (texto: string): Date => new Date(`${texto}T00:00
 export const desdeTextoMes = (texto: string): Date => new Date(`${texto}-01T00:00:00Z`);
 
 /** DTO de salida (Parte 4, sección 9). BIGINT se convierte a number (Parte 6, sección 4.2). */
-export function aMovimientoDto(m: MovimientoDb): Movimiento {
+export function aMovimientoDto(
+  m: MovimientoDb & { alumno?: { nombre: string } | null },
+): Movimiento {
   const mesCorrespondiente = m.mesCorrespondiente ? aTextoMes(m.mesCorrespondiente) : null;
   return {
     id: m.id,
@@ -33,6 +35,7 @@ export function aMovimientoDto(m: MovimientoDb): Movimiento {
     medioPago: m.medioPago,
     turnoId: m.turnoId,
     alumnoId: m.alumnoId,
+    alumnoNombre: m.alumno?.nombre ?? null,
     tareaId: m.tareaId,
     mesCorrespondiente,
     mesImputacion: mesCorrespondiente ?? aTextoMes(m.fecha),

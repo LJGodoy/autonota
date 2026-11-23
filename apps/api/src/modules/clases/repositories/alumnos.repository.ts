@@ -9,20 +9,27 @@ import type {
 } from '../../../common/personas/personas.service';
 import type { DatosMovimiento } from '../../movimientos/repositories/movimientos.repository';
 
-/** Clase del alumno que ya empezó (o cualquiera) y no tiene pago */
-const impaga = (antesDe?: Date): Prisma.ClaseAlumnoWhereInput => ({
-  pago: { is: null },
-  ...(antesDe ? { clase: { inicio: { lt: antesDe } } } : {}),
+/** Clases que empezaron antes de `antesDe` y, si hay `desde`, no antes de esa fecha */
+export interface RangoEmpezadas {
+  desde?: Date;
+  antesDe: Date;
+}
+
+/** Clase del alumno que no tiene pago */
+const impaga: Prisma.ClaseAlumnoWhereInput = { pago: { is: null } };
+
+const empezadas = (r: RangoEmpezadas): Prisma.ClaseAlumnoWhereInput => ({
+  clase: { inicio: { lt: r.antesDe, ...(r.desde ? { gte: r.desde } : {}) } },
 });
 
 @Injectable()
 export class AlumnosRepository implements RepositorioPersonas {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** RF-30 y RF-38: con debeAntesDe, solo los que tienen clases impagas empezadas antes */
+  /** RF-30 y RF-38: con debe, solo los que tienen clases impagas ya empezadas en el rango */
   listar(
     emprendimientoId: string,
-    f: FiltroPersonasRepo & { debeAntesDe?: Date },
+    f: FiltroPersonasRepo & { debe?: RangoEmpezadas },
   ): Promise<[PersonaDb[], number]> {
     const where: Prisma.AlumnoWhereInput = { emprendimientoId, activo: f.activo };
     if (f.q) {
@@ -31,7 +38,7 @@ export class AlumnosRepository implements RepositorioPersonas {
         { telefono: { contains: f.q } },
       ];
     }
-    if (f.debeAntesDe) where.clases = { some: impaga(f.debeAntesDe) };
+    if (f.debe) where.clases = { some: { ...impaga, ...empezadas(f.debe) } };
     return this.prisma.$transaction([
       this.prisma.alumno.findMany({
         where,
@@ -43,11 +50,15 @@ export class AlumnosRepository implements RepositorioPersonas {
     ]);
   }
 
-  /** Cuántas clases empezadas antes de la fecha no pagó cada alumno */
-  async adeudadas(alumnoIds: string[], antesDe: Date): Promise<Map<string, number>> {
+  /** Cuántas clases ya empezadas del rango tiene cada alumno; con soloImpagas, las que no pagó */
+  async contar(
+    alumnoIds: string[],
+    rango: RangoEmpezadas,
+    soloImpagas: boolean,
+  ): Promise<Map<string, number>> {
     const filas = await this.prisma.claseAlumno.groupBy({
       by: ['alumnoId'],
-      where: { alumnoId: { in: alumnoIds }, ...impaga(antesDe) },
+      where: { alumnoId: { in: alumnoIds }, ...empezadas(rango), ...(soloImpagas ? impaga : {}) },
       _count: { _all: true },
     });
     return new Map(filas.map((f) => [f.alumnoId, f._count._all]));
@@ -58,7 +69,7 @@ export class AlumnosRepository implements RepositorioPersonas {
     return this.prisma.claseAlumno.findMany({
       where: {
         alumnoId,
-        ...(f.impagas ? impaga() : {}),
+        ...(f.impagas ? impaga : {}),
         ...(f.desde && f.hasta ? { clase: { inicio: { gte: f.desde, lt: f.hasta } } } : {}),
       },
       include: { clase: true, pago: { select: { movimientoId: true } } },
@@ -79,7 +90,7 @@ export class AlumnosRepository implements RepositorioPersonas {
           alumnoId,
           claseId: { in: claseIds },
           clase: { emprendimientoId: datos.emprendimientoId },
-          ...impaga(),
+          ...impaga,
         },
       });
       if (validas !== claseIds.length) {
@@ -89,7 +100,10 @@ export class AlumnosRepository implements RepositorioPersonas {
           [{ field: 'claseIds', message: 'Elegí clases impagas del alumno' }],
         );
       }
-      const movimiento = await tx.movimiento.create({ data: datos });
+      const movimiento = await tx.movimiento.create({
+        data: datos,
+        include: { alumno: { select: { nombre: true } } },
+      });
       await tx.pagoClase.createMany({
         data: claseIds.map((claseId) => ({ claseId, alumnoId, movimientoId: movimiento.id })),
       });

@@ -14,13 +14,13 @@ import { useEmprendimientoActual } from '../emprendimientos/LayoutEmprendimiento
 import { useBorrarClasesDelRango, useClases, useCopiarSemanaClases, useEliminarClase } from './api';
 import { estadoPago } from './estadoPago';
 import { FormClase } from './FormClase';
-import { MarcaPago, PanelAlumnos } from './PantallaAlumnos';
+import { MarcaPago } from './PantallaAlumnos';
 
 const MARCA_ESTADO = { debe: '', parcial: '◐ ', pagada: '✓ ' } as const;
 
 const tienePagos = (c: Clase) => c.alumnos.some((a) => a.pagada);
 
-/** RF-33: calendario de clases por día y semana, con los alumnos al costado */
+/** RF-33: calendario de clases por día y semana */
 export function PantallaCalendarioClases() {
   const emp = useEmprendimientoActual();
   const [rango, setRango] = useState({ desde: '', hasta: '', lunes: '' });
@@ -67,7 +67,7 @@ export function PantallaCalendarioClases() {
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+    <div>
       <section className="flex min-w-0 flex-col gap-4">
         <div className="flex flex-wrap items-center gap-2">
           <Boton
@@ -139,13 +139,6 @@ export function PantallaCalendarioClases() {
         />
       </section>
 
-      <aside className="flex min-w-0 flex-col gap-3" aria-labelledby="titulo-alumnos">
-        <h2 id="titulo-alumnos" className="font-mano text-2xl font-bold">
-          Alumnos
-        </h2>
-        <PanelAlumnos eid={emp.id} />
-      </aside>
-
       {borrando && (
         <Confirmacion
           titulo={esDia ? '¿Borrar las clases del día?' : '¿Borrar las clases de la semana?'}
@@ -195,7 +188,7 @@ export function PantallaCalendarioClases() {
           <ul className="flex flex-col gap-1">
             {clase.alumnos.map((a) => (
               <li key={a.id} className="flex flex-wrap items-center justify-between gap-2">
-                <Link to={`alumnos/${a.id}`} className="font-bold">
+                <Link to={`/emprendimientos/${emp.id}/alumnos/${a.id}`} className="font-bold">
                   {a.nombre}
                   {a.activo ? '' : ' (dado de baja)'}
                 </Link>

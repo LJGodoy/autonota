@@ -253,6 +253,26 @@ describe('calendario de clases', () => {
     ).toEqual({ Ana: 0, Beto: 1 });
     const deben = await http().get(`${base}/alumnos?debe=true`).set(auth(s)).expect(200);
     expect(deben.body.data.map((a: { nombre: string }) => a.nombre)).toEqual(['Beto']);
+    // Por mes: Ana pagó (2 clases), Beto debe, Ceci está de baja; en otro mes nadie tuvo clases
+    const delMesDe = async (mes: string) =>
+      Object.fromEntries(
+        (await http().get(`${base}/alumnos?mes=${mes}`).set(auth(s)).expect(200)).body.data.map(
+          (a: { nombre: string; clasesAdeudadas: number; clasesDelMes: number }) => [
+            a.nombre,
+            [a.clasesAdeudadas, a.clasesDelMes],
+          ],
+        ),
+      );
+    expect(await delMesDe('2025-11')).toEqual({ Ana: [0, 2], Beto: [1, 1] });
+    // La clase futura (2027) no cuenta aunque el mes sea ese
+    expect(await delMesDe('2027-11')).toEqual({ Ana: [0, 0], Beto: [0, 0] });
+    expect(await delMesDe('2025-10')).toEqual({ Ana: [0, 0], Beto: [0, 0] });
+    const debenMes = async (mes: string) =>
+      (
+        await http().get(`${base}/alumnos?debe=true&mes=${mes}`).set(auth(s)).expect(200)
+      ).body.data.map((a: { nombre: string }) => a.nombre);
+    expect(await debenMes('2025-11')).toEqual(['Beto']);
+    expect(await debenMes('2025-10')).toEqual([]);
 
     const delMes = await http()
       .get(`${base}/alumnos/${ana}/clases?mes=2025-11`)
@@ -283,6 +303,9 @@ describe('calendario de clases', () => {
     // Borrar el ingreso deja la clase impaga
     await http().delete(`${base}/movimientos/${pago.body.id}`).set(auth(s)).expect(204);
     expect(await impagas()).toEqual([c2, c3]);
+    // Impagas de cualquier mes: una de un mes anterior y otra del actual se listan juntas
+    const anterior = await crear([ana], hora('2025-10-20', '18:00'));
+    expect(await impagas()).toEqual([anterior, c2, c3]);
   });
 
   it('debería anonimizar un alumno y conservar sus pagos (CU-18)', async () => {

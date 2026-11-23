@@ -16,7 +16,7 @@ import { esViolacionUnica } from '../../../common/prisma/prisma.service';
 import { desdeHoraArgentina, hoyEnArgentina } from '../../../common/utils/fechas';
 import { MovimientosService } from '../../movimientos/services/movimientos.service';
 import { aMovimientoDto, desdeTextoFecha } from '../../movimientos/dto/movimiento.dto';
-import { AlumnosRepository } from '../repositories/alumnos.repository';
+import { AlumnosRepository, type RangoEmpezadas } from '../repositories/alumnos.repository';
 
 /** RF-30, RF-35 y RF-38, con pago por clase */
 @Injectable()
@@ -29,24 +29,37 @@ export class AlumnosService extends PersonasService {
   }
 
   /**
-   * CU-14: cada alumno trae cuántas clases ya empezadas no pagó; con debe, solo los activos
-   * que deben alguna. No calcula montos adeudados (no hay precio por clase).
+   * CU-14: cada alumno trae cuántas clases ya empezadas tuvo (`clasesDelMes`) y cuántas no pagó;
+   * con `mes` se miran solo las del mes, si no, todas. Con debe, solo los activos que deben
+   * alguna. No calcula montos adeudados (no hay precio por clase).
    */
   async listarConPagos(emprendimientoId: string, f: FiltroAlumnos): Promise<Paginado<Alumno>> {
     const ahora = new Date();
+    const rango: RangoEmpezadas = { antesDe: ahora };
+    if (f.mes) {
+      const [a, m] = f.mes.split('-').map(Number) as [number, number];
+      rango.desde = desdeHoraArgentina(a, m, 1);
+      const hasta = desdeHoraArgentina(a, m + 1, 1);
+      if (hasta < ahora) rango.antesDe = hasta;
+    }
     const [items, total] = await this.alumnos.listar(emprendimientoId, {
       q: f.q || undefined,
       activo: f.debe ? true : f.activo,
-      debeAntesDe: f.debe ? ahora : undefined,
+      debe: f.debe ? rango : undefined,
       saltar: (f.page - 1) * f.pageSize,
       tomar: f.pageSize,
     });
-    const adeudadas = await this.alumnos.adeudadas(
-      items.map((a) => a.id),
-      ahora,
-    );
+    const ids = items.map((a) => a.id);
+    const [adeudadas, delMes] = await Promise.all([
+      this.alumnos.contar(ids, rango, true),
+      this.alumnos.contar(ids, rango, false),
+    ]);
     return {
-      data: items.map((a) => ({ ...aPersonaDto(a), clasesAdeudadas: adeudadas.get(a.id) ?? 0 })),
+      data: items.map((a) => ({
+        ...aPersonaDto(a),
+        clasesAdeudadas: adeudadas.get(a.id) ?? 0,
+        clasesDelMes: delMes.get(a.id) ?? 0,
+      })),
       meta: { page: f.page, pageSize: f.pageSize, total },
     };
   }

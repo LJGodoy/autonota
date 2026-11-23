@@ -2,6 +2,10 @@ import { Injectable } from '@nestjs/common';
 import type { MedioPago, Movimiento, Prisma, TipoMovimiento } from '@prisma/client';
 import { PrismaService } from '../../../common/prisma/prisma.service';
 
+/** Movimiento con el nombre del alumno, para el DTO de salida */
+export type MovimientoConAlumno = Movimiento & { alumno: { nombre: string } | null };
+const CON_ALUMNO = { alumno: { select: { nombre: true } } } as const;
+
 export interface DatosMovimiento {
   emprendimientoId: string;
   tipo: TipoMovimiento;
@@ -31,23 +35,32 @@ export interface FiltroRepositorio {
 export class MovimientosRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  buscarPorClave(claveIdempotencia: string): Promise<Movimiento | null> {
-    return this.prisma.movimiento.findUnique({ where: { claveIdempotencia } });
+  buscarPorClave(claveIdempotencia: string): Promise<MovimientoConAlumno | null> {
+    return this.prisma.movimiento.findUnique({
+      where: { claveIdempotencia },
+      include: CON_ALUMNO,
+    });
   }
 
-  buscarDelEmprendimiento(id: string, emprendimientoId: string): Promise<Movimiento | null> {
-    return this.prisma.movimiento.findFirst({ where: { id, emprendimientoId } });
+  buscarDelEmprendimiento(
+    id: string,
+    emprendimientoId: string,
+  ): Promise<MovimientoConAlumno | null> {
+    return this.prisma.movimiento.findFirst({
+      where: { id, emprendimientoId },
+      include: CON_ALUMNO,
+    });
   }
 
-  crear(datos: DatosMovimiento): Promise<Movimiento> {
-    return this.prisma.movimiento.create({ data: datos });
+  crear(datos: DatosMovimiento): Promise<MovimientoConAlumno> {
+    return this.prisma.movimiento.create({ data: datos, include: CON_ALUMNO });
   }
 
   actualizar(
     id: string,
     datos: Partial<Pick<DatosMovimiento, 'montoCentavos' | 'fecha' | 'descripcion' | 'medioPago'>>,
-  ): Promise<Movimiento> {
-    return this.prisma.movimiento.update({ where: { id }, data: datos });
+  ): Promise<MovimientoConAlumno> {
+    return this.prisma.movimiento.update({ where: { id }, data: datos, include: CON_ALUMNO });
   }
 
   async eliminar(id: string): Promise<void> {
@@ -58,7 +71,10 @@ export class MovimientosRepository {
    * RF-73: listado del emprendimiento. El filtro por mes usa el mes de imputación
    * (Parte 3, sección 4.2): el mes correspondiente si existe; si no, el mes de la fecha.
    */
-  async listar(emprendimientoId: string, f: FiltroRepositorio): Promise<[Movimiento[], number]> {
+  async listar(
+    emprendimientoId: string,
+    f: FiltroRepositorio,
+  ): Promise<[MovimientoConAlumno[], number]> {
     const where: Prisma.MovimientoWhereInput = {
       emprendimientoId,
       tipo: f.tipo,
@@ -76,6 +92,7 @@ export class MovimientosRepository {
     return this.prisma.$transaction([
       this.prisma.movimiento.findMany({
         where,
+        include: CON_ALUMNO,
         orderBy: [{ fecha: 'desc' }, { creadoEn: 'desc' }],
         skip: f.saltar,
         take: f.tomar,

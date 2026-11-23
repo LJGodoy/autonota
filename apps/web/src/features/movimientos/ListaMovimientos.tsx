@@ -26,6 +26,8 @@ export function ListaMovimientos({
       <ul className="flex flex-col py-1 pr-3 pl-10">
         {movimientos.map((m) => {
           const esIngreso = m.tipo === 'INGRESO';
+          const origen = origenMovimiento(m, tipoNegocio);
+          const titulo = m.descripcion || (m.alumnoNombre ? `Pago de ${m.alumnoNombre}` : origen);
           const detalle = [
             formatearFechaCorta(m.fecha),
             m.medioPago ? NOMBRE_MEDIO_PAGO[m.medioPago] : null,
@@ -39,11 +41,11 @@ export function ListaMovimientos({
               className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-cuadricula py-2.5 last:border-b-0"
             >
               <div className="min-w-0 flex-1">
-                <p className="truncate font-bold">
-                  {m.descripcion || origenMovimiento(m, tipoNegocio)}
-                </p>
+                <p className="truncate font-bold">{titulo}</p>
                 <p className="text-sm text-lapiz">
-                  {m.descripcion ? `${origenMovimiento(m, tipoNegocio)} · ` : ''}
+                  {m.descripcion
+                    ? `${m.alumnoNombre ? `Alumno: ${m.alumnoNombre}` : origen} · `
+                    : ''}
                   {detalle}
                 </p>
               </div>

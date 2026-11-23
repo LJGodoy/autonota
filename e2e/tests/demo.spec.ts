@@ -80,9 +80,9 @@ test.describe.serial('demo con los tres tipos de negocio', () => {
 
   test('CU-09: debería registrar el pago por clase de un alumno y dejar de listarlo como deudor', async () => {
     await abrirEmprendimiento(page, 'Clases de tenis de ejemplo');
-    const panel = page.locator('aside');
-    await panel.getByText('Solo los que deben').click();
-    const fila = panel.locator('ul li').filter({ hasText: 'Debe' }).first();
+    await page.getByRole('link', { name: 'Alumnos' }).click();
+    await page.getByText('Solo los que deben').click();
+    const fila = page.locator('ul li').filter({ hasText: 'Debe' }).first();
     const nombre = (await fila.locator('p').first().textContent()) ?? '';
     await fila.getByRole('button').first().click();
     await expect(page.getByRole('heading', { name: nombre })).toBeVisible();
@@ -94,9 +94,9 @@ test.describe.serial('demo con los tres tipos de negocio', () => {
     await dialogo.getByLabel('Monto total en pesos').fill('40.000');
     await dialogo.getByRole('button', { name: 'Guardar pago' }).click();
     await expect(dialogo).toBeHidden();
-    await page.getByRole('link', { name: '← Volver al calendario' }).click();
-    await page.locator('aside').getByText('Solo los que deben').click();
-    await expect(page.locator('aside ul li').filter({ hasText: nombre })).toHaveCount(0);
+    await page.getByRole('link', { name: '← Volver a alumnos' }).click();
+    await page.getByText('Solo los que deben').click();
+    await expect(page.locator('ul li').filter({ hasText: nombre })).toHaveCount(0);
   });
 
   test('CU-10: debería copiar la semana anterior de clases', async () => {

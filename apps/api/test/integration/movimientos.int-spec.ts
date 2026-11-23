@@ -128,6 +128,7 @@ describe('/movimientos', () => {
         mesImputacion: '2026-11',
       }),
     ]);
+    expect(noviembre.body.data[0]).toMatchObject({ alumnoNombre: 'Julián' });
     const diciembre = await http().get(`${base}?mes=2026-12`).set(auth(s)).expect(200);
     expect(diciembre.body.data).toEqual([]);
 

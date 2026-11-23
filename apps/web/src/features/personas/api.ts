@@ -16,6 +16,8 @@ export interface FiltroPersonas {
   activo?: boolean;
   /** Solo alumnos: los que deben clases ya dictadas */
   debe?: boolean;
+  /** Solo alumnos: el mes (AAAA-MM) para el que se cuentan las clases y deudas */
+  mes?: string;
   pageSize?: number;
 }
 
@@ -31,6 +33,7 @@ export function usePersonas(eid: string, recurso: Recurso, f: FiltroPersonas = {
       });
       if (f.q) q.set('q', f.q);
       if (f.debe) q.set('debe', 'true');
+      if (f.mes) q.set('mes', f.mes);
       return api<Paginado<Alumno>>(`/emprendimientos/${eid}/${recurso}?${q.toString()}`);
     },
     placeholderData: keepPreviousData,
