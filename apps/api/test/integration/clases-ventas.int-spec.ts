@@ -308,6 +308,91 @@ describe('calendario de clases', () => {
     expect(await impagas()).toEqual([anterior, c2, c3]);
   });
 
+  it('debería cancelar una clase como registro: no se debe, no se paga ni se edita', async () => {
+    const { s, base } = await nuevo('CLASES');
+    const [ana] = await alumnos(s, base, 'Ana');
+    const crear = async (inicio: string) =>
+      (
+        await http()
+          .post(`${base}/clases`)
+          .set(auth(s))
+          .send({ modalidad: 'INDIVIDUAL', inicio, duracionMinutos: 60, alumnoIds: [ana] })
+          .expect(201)
+      ).body.id as string;
+    const c1 = await crear(hora('2025-11-10', '18:00'));
+    const c2 = await crear(hora('2025-11-12', '18:00'));
+    const c3 = await crear(hora('2025-11-14', '18:00'));
+    const debe = async () =>
+      (await http().get(`${base}/alumnos?mes=2025-11`).set(auth(s)).expect(200)).body.data[0];
+    expect(await debe()).toMatchObject({ clasesAdeudadas: 3, clasesDelMes: 3 });
+
+    // c3 se paga y después se cancela: el vínculo queda
+    await http()
+      .post(`${base}/alumnos/${ana}/pagos`)
+      .set(auth(s))
+      .send({ montoCentavos: 100, fecha: '2025-11-14', claseIds: [c3] })
+      .expect(201);
+    const cancelada = await http()
+      .post(`${base}/clases/${c1}/cancelar`)
+      .set(auth(s))
+      .send({ motivo: 'Me enfermé' })
+      .expect(200);
+    expect(cancelada.body).toMatchObject({ cancelada: true, motivoCancelacion: 'Me enfermé' });
+    await http().post(`${base}/clases/${c3}/cancelar`).set(auth(s)).send({}).expect(200);
+
+    expect(
+      (await http().post(`${base}/clases/${c1}/cancelar`).set(auth(s)).send({}).expect(409)).body
+        .error.code,
+    ).toBe('ESTADO_INVALIDO');
+    await http().patch(`${base}/clases/${c1}`).set(auth(s)).send({ titulo: 'x' }).expect(409);
+    expect(
+      (
+        await http()
+          .post(`${base}/alumnos/${ana}/pagos`)
+          .set(auth(s))
+          .send({ montoCentavos: 100, claseIds: [c1] })
+          .expect(400)
+      ).body.error.code,
+    ).toBe('VALIDACION');
+
+    // Solo c2 se debe; las canceladas no cuentan ni como clases del mes
+    expect(await debe()).toMatchObject({ clasesAdeudadas: 1, clasesDelMes: 1 });
+    const impagas = await http()
+      .get(`${base}/alumnos/${ana}/clases?impagas=true`)
+      .set(auth(s))
+      .expect(200);
+    expect(impagas.body.map((c: { id: string }) => c.id)).toEqual([c2]);
+    // En el perfil se ven, con el pago conservado
+    const delMes = await http()
+      .get(`${base}/alumnos/${ana}/clases?mes=2025-11`)
+      .set(auth(s))
+      .expect(200);
+    expect(
+      delMes.body.map((c: { id: string; cancelada: boolean; pagada: boolean }) => [
+        c.id,
+        c.cancelada,
+        c.pagada,
+      ]),
+    ).toEqual([
+      [c1, true, false],
+      [c2, false, false],
+      [c3, true, true],
+    ]);
+
+    // Copiar la semana la copia como clase normal
+    const copia = await http()
+      .post(`${base}/clases/copiar-semana`)
+      .set(auth(s))
+      .send({ semanaOrigen: '2025-11-10' })
+      .expect(201);
+    expect(copia.body.creadas).toHaveLength(3);
+    expect(copia.body.creadas.every((c: { cancelada: boolean }) => !c.cancelada)).toBe(true);
+    expect(copia.body.creadas[0].motivoCancelacion).toBeNull();
+
+    // Una cancelada se puede borrar
+    await http().delete(`${base}/clases/${c1}`).set(auth(s)).expect(204);
+  });
+
   it('debería anonimizar un alumno y conservar sus pagos (CU-18)', async () => {
     const { s, base } = await nuevo('CLASES');
     const [a1] = await alumnos(s, base, 'Florencia');

@@ -14,6 +14,7 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagg
 import { createZodDto } from 'nestjs-zod';
 import {
   esquemaBorrarClases,
+  esquemaCancelarClase,
   esquemaCopiarSemana,
   esquemaCrearClase,
   esquemaEditarClase,
@@ -33,6 +34,7 @@ class CrearClaseDto extends createZodDto(esquemaCrearClase) {}
 class EditarClaseDto extends createZodDto(esquemaEditarClase) {}
 class FiltroClasesDto extends createZodDto(esquemaFiltroClases) {}
 class CopiarSemanaClasesDto extends createZodDto(esquemaCopiarSemana) {}
+class CancelarClaseDto extends createZodDto(esquemaCancelarClase) {}
 class BorrarClasesDto extends createZodDto(esquemaBorrarClases) {}
 
 /** Clases (Parte 4, sección 7.2) */
@@ -97,6 +99,20 @@ export class ClasesController {
     return this.servicio.editar(emp.id, id, dto);
   }
 
+  @Post(':id/cancelar')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Cancela la clase sin borrarla: no cuenta como deuda ni se edita. Motivo opcional',
+  })
+  @ApiResponse({ status: 409, description: 'ESTADO_INVALIDO: ya estaba cancelada' })
+  cancelar(
+    @EmprendimientoActual() emp: EmprendimientoDePeticion,
+    @Param('id') id: string,
+    @Body() dto: CancelarClaseDto,
+  ): Promise<Clase> {
+    return this.servicio.cancelar(emp.id, id, dto);
+  }
+
   @Delete()
   @ApiOperation({
     summary:
@@ -112,7 +128,7 @@ export class ClasesController {
   @Delete(':id')
   @HttpCode(204)
   @ApiOperation({
-    summary: 'Cancelar = borrar la clase (RF-32). Sus pagos pierden el vínculo; el ingreso queda',
+    summary: 'Borra la clase (RF-32). Sus pagos pierden el vínculo; el ingreso queda',
   })
   eliminar(
     @EmprendimientoActual() emp: EmprendimientoDePeticion,

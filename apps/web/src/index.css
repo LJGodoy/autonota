@@ -285,6 +285,14 @@
   background: var(--color-verde);
   border-color: var(--color-verde);
 }
+.calendario-cuaderno .evento-clase-cancelada {
+  background: var(--color-arena);
+  border-color: var(--color-linea);
+}
+.calendario-cuaderno .evento-clase-cancelada .fc-event-main {
+  color: var(--color-lapiz);
+  text-decoration: line-through;
+}
 .calendario-cuaderno .evento-cancelado {
   border-color: var(--color-lapiz);
   opacity: 0.8;

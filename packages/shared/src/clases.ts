@@ -53,6 +53,12 @@ export const esquemaCrearClase = z
   .superRefine(validarModalidad);
 export type CrearClaseInput = z.infer<typeof esquemaCrearClase>;
 
+/** Cancelar conserva la clase como registro; el motivo es opcional */
+export const esquemaCancelarClase = z
+  .object({ motivo: z.string().trim().max(200, 'Usá como máximo 200 caracteres').nullish() })
+  .strict();
+export type CancelarClaseInput = z.infer<typeof esquemaCancelarClase>;
+
 export const esquemaEditarClase = z
   .object({
     titulo: z.string().trim().max(100).nullish(),
@@ -123,6 +129,8 @@ export interface Clase {
   inicio: string;
   fin: string;
   duracionMinutos: number;
+  cancelada: boolean;
+  motivoCancelacion: string | null;
   alumnos: { id: string; nombre: string; activo: boolean; pagada: boolean }[];
 }
 
@@ -134,6 +142,7 @@ export interface ClaseDeAlumno {
   inicio: string;
   fin: string;
   pagada: boolean;
+  cancelada: boolean;
 }
 
 export interface ResultadoCopiaClases {

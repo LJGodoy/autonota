@@ -310,11 +310,15 @@ async function cargarClases(
         modalidad: p.modalidad,
         inicio,
         fin: new Date(inicio.getTime() + 60 * 60000),
+        // Una clase de hace tres semanas quedó cancelada: no se debe ni se paga
+        ...(semana === -3 && p === plantilla[0]
+          ? { canceladaEn: addDays(inicio, -1), motivoCancelacion: 'Me enfermé' }
+          : {}),
       });
       const { anio, mes } = aHoraArgentina(inicio);
       for (const alumnoId of p.alumnos) {
         participantes.push({ claseId: id, alumnoId });
-        if (inicio >= ahora) continue;
+        if (inicio >= ahora || (semana === -3 && p === plantilla[0])) continue;
         const porMes = dictadas.get(alumnoId) ?? new Map();
         const clave = `${anio}-${String(mes).padStart(2, '0')}`;
         porMes.set(clave, [

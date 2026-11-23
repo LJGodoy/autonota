@@ -18,8 +18,9 @@ export interface RangoEmpezadas {
 /** Clase del alumno que no tiene pago */
 const impaga: Prisma.ClaseAlumnoWhereInput = { pago: { is: null } };
 
+/** Las canceladas nunca se deben ni cuentan como clases dictadas */
 const empezadas = (r: RangoEmpezadas): Prisma.ClaseAlumnoWhereInput => ({
-  clase: { inicio: { lt: r.antesDe, ...(r.desde ? { gte: r.desde } : {}) } },
+  clase: { canceladaEn: null, inicio: { lt: r.antesDe, ...(r.desde ? { gte: r.desde } : {}) } },
 });
 
 @Injectable()
@@ -70,7 +71,10 @@ export class AlumnosRepository implements RepositorioPersonas {
       where: {
         alumnoId,
         ...(f.impagas ? impaga : {}),
-        ...(f.desde && f.hasta ? { clase: { inicio: { gte: f.desde, lt: f.hasta } } } : {}),
+        clase: {
+          ...(f.impagas ? { canceladaEn: null } : {}),
+          ...(f.desde && f.hasta ? { inicio: { gte: f.desde, lt: f.hasta } } : {}),
+        },
       },
       include: { clase: true, pago: { select: { movimientoId: true } } },
       orderBy: { clase: { inicio: 'asc' } },
@@ -89,14 +93,14 @@ export class AlumnosRepository implements RepositorioPersonas {
         where: {
           alumnoId,
           claseId: { in: claseIds },
-          clase: { emprendimientoId: datos.emprendimientoId },
+          clase: { emprendimientoId: datos.emprendimientoId, canceladaEn: null },
           ...impaga,
         },
       });
       if (validas !== claseIds.length) {
         throw new DomainException(
           'VALIDACION',
-          'Hay clases que no son del alumno o ya están pagadas.',
+          'Hay clases que no son del alumno, ya están pagadas o fueron canceladas.',
           [{ field: 'claseIds', message: 'Elegí clases impagas del alumno' }],
         );
       }

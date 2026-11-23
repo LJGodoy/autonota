@@ -4,6 +4,7 @@ import type { EventInput } from '@fullcalendar/core';
 import type { Clase } from '@autonota/shared';
 import { Boton } from '../../components/Boton';
 import { Calendario } from '../../components/Calendario';
+import { Campo } from '../../components/Campo';
 import { Confirmacion } from '../../components/Confirmacion';
 import { CopiarSemana } from '../../components/CopiarSemana';
 import { Dialogo } from '../../components/Dialogo';
@@ -11,12 +12,18 @@ import { MensajeError } from '../../components/Estados';
 import { formatearFechaHora } from '../../lib/fechas';
 import { aHoraLocal, desdeFechaCalendario, horaCorta, lunesDe } from '../../lib/zona';
 import { useEmprendimientoActual } from '../emprendimientos/LayoutEmprendimiento';
-import { useBorrarClasesDelRango, useClases, useCopiarSemanaClases, useEliminarClase } from './api';
+import {
+  useBorrarClasesDelRango,
+  useCancelarClase,
+  useClases,
+  useCopiarSemanaClases,
+  useEliminarClase,
+} from './api';
 import { estadoPago } from './estadoPago';
 import { FormClase } from './FormClase';
 import { MarcaPago } from './PantallaAlumnos';
 
-const MARCA_ESTADO = { debe: '', parcial: '◐ ', pagada: '✓ ' } as const;
+const MARCA_ESTADO = { cancelada: '', debe: '', parcial: '◐ ', pagada: '✓ ' } as const;
 
 const tienePagos = (c: Clase) => c.alumnos.some((a) => a.pagada);
 
@@ -30,10 +37,12 @@ export function PantallaCalendarioClases() {
     duracionMinutos?: number;
   } | null>(null);
   const [elegida, setElegida] = useState<string | null>(null);
-  const [paso, setPaso] = useState<'ver' | 'editar' | 'cancelar'>('ver');
+  const [paso, setPaso] = useState<'ver' | 'editar' | 'cancelar' | 'eliminar'>('ver');
+  const [motivo, setMotivo] = useState('');
   const [borrando, setBorrando] = useState(false);
   const clases = useClases(emp.id, rango.desde, rango.hasta);
   const eliminar = useEliminarClase(emp.id);
+  const cancelar = useCancelarClase(emp.id);
   const borrar = useBorrarClasesDelRango(emp.id);
   const copiar = useCopiarSemanaClases(emp.id);
   const esDia = rango.desde && Date.parse(rango.hasta) - Date.parse(rango.desde) <= 86_400_000;
@@ -51,7 +60,7 @@ export function PantallaCalendarioClases() {
         const estado = estadoPago(c);
         return {
           id: c.id,
-          title: `${c.titulo ?? (c.modalidad === 'INDIVIDUAL' ? 'Clase individual' : 'Clase grupal')} · ${c.alumnos.map((a) => a.nombre).join(', ')}`,
+          title: `${c.cancelada ? 'Cancelada · ' : ''}${c.titulo ?? (c.modalidad === 'INDIVIDUAL' ? 'Clase individual' : 'Clase grupal')} · ${c.alumnos.map((a) => a.nombre).join(', ')}`,
           start: aHoraLocal(c.inicio),
           end: aHoraLocal(c.fin),
           classNames: [`evento-clase-${estado}`],
@@ -64,6 +73,7 @@ export function PantallaCalendarioClases() {
   const cerrar = () => {
     setElegida(null);
     setPaso('ver');
+    setMotivo('');
   };
 
   return (
@@ -102,7 +112,8 @@ export function PantallaCalendarioClases() {
           )}
         </div>
         <p className="text-sm text-lapiz">
-          Negro: nadie pagó · ◐ Amarillo: pagaron algunos · ✓ Verde: pagaron todos
+          Negro: nadie pagó · ◐ Amarillo: pagaron algunos · ✓ Verde: pagaron todos · Gris tachada:
+          cancelada
         </p>
         {clases.isError && (
           <MensajeError error={clases.error} reintentar={() => void clases.refetch()} />
@@ -167,6 +178,26 @@ export function PantallaCalendarioClases() {
         <Confirmacion
           titulo="¿Cancelar la clase?"
           textoConfirmar="Cancelar clase"
+          alConfirmar={() => cancelar.mutateAsync({ id: clase.id, motivo })}
+          alCerrar={cerrar}
+        >
+          <p>
+            La clase del {formatearFechaHora(clase.inicio)} queda registrada como cancelada y no se
+            cobra.
+          </p>
+          <Campo
+            etiqueta="Motivo (opcional)"
+            placeholder="Me enfermé"
+            maxLength={200}
+            value={motivo}
+            onChange={(e) => setMotivo(e.target.value)}
+          />
+        </Confirmacion>
+      )}
+      {clase && paso === 'eliminar' && (
+        <Confirmacion
+          titulo="¿Eliminar la clase?"
+          textoConfirmar="Eliminar clase"
           alConfirmar={() => eliminar.mutateAsync(clase.id)}
           alCerrar={cerrar}
         >
@@ -196,10 +227,23 @@ export function PantallaCalendarioClases() {
               </li>
             ))}
           </ul>
+          {clase.cancelada && (
+            <p>
+              <strong>Cancelada</strong>
+              {clase.motivoCancelacion ? `: ${clase.motivoCancelacion}` : ''}
+            </p>
+          )}
           <div className="flex flex-wrap gap-2">
-            <Boton onClick={() => setPaso('editar')}>Editar o reprogramar</Boton>
-            <Boton variante="peligro" onClick={() => setPaso('cancelar')}>
-              Cancelar clase
+            {!clase.cancelada && (
+              <>
+                <Boton onClick={() => setPaso('editar')}>Editar o reprogramar</Boton>
+                <Boton variante="secundario" onClick={() => setPaso('cancelar')}>
+                  Cancelar clase
+                </Boton>
+              </>
+            )}
+            <Boton variante="peligro" onClick={() => setPaso('eliminar')}>
+              Eliminar clase
             </Boton>
           </div>
         </Dialogo>

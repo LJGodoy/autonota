@@ -12,7 +12,21 @@ import { PantallaPersonas } from '../personas/PantallaPersonas';
 import { useAlumno, useClasesAlumno, usePagosAlumno } from './api';
 import { FormPago } from './FormPago';
 
-export function MarcaPago({ pagada, detalle }: { pagada: boolean; detalle?: string }) {
+export function MarcaPago({
+  pagada,
+  detalle,
+  cancelada,
+}: {
+  pagada: boolean;
+  detalle?: string;
+  cancelada?: boolean;
+}) {
+  if (cancelada)
+    return (
+      <span className="rounded-trazo border border-linea bg-arena px-2 text-sm font-bold text-lapiz">
+        Cancelada{pagada ? ' · pagada' : ''}
+      </span>
+    );
   return pagada ? (
     <span className="rounded-trazo border border-verde bg-verde px-2 text-sm font-bold text-hoja">
       ✓ Pagada
@@ -113,7 +127,7 @@ export function PantallaPerfilAlumno() {
                 <span>
                   <b>{formatearFechaHora(c.inicio)}</b> · {c.titulo ?? 'Clase'}
                 </span>
-                <MarcaPago pagada={c.pagada} />
+                <MarcaPago pagada={c.pagada} cancelada={c.cancelada} />
               </li>
             ))}
           </ul>

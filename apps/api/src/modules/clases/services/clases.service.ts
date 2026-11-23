@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type {
   BorrarClasesInput,
+  CancelarClaseInput,
   Clase,
   CopiarSemanaInput,
   CrearClaseInput,
@@ -27,6 +28,8 @@ export function aClaseDto(c: ClaseConAlumnos): Clase {
     inicio: c.inicio.toISOString(),
     fin: c.fin.toISOString(),
     duracionMinutos: Math.round((c.fin.getTime() - c.inicio.getTime()) / 60000),
+    cancelada: c.canceladaEn !== null,
+    motivoCancelacion: c.motivoCancelacion,
     alumnos: c.alumnos.map((ca) => ({ ...ca.alumno, pagada: ca.pago !== null })),
   };
 }
@@ -68,6 +71,9 @@ export class ClasesService {
   /** RF-32: edita o reprograma una clase, incluida la lista de alumnos */
   async editar(emprendimientoId: string, id: string, input: EditarClaseInput): Promise<Clase> {
     const actual = await this.buscarOFallar(emprendimientoId, id);
+    if (actual.canceladaEn) {
+      throw new DomainException('ESTADO_INVALIDO', 'Una clase cancelada no se puede editar.');
+    }
     const modalidad = input.modalidad ?? actual.modalidad;
     const alumnoIds = input.alumnoIds ?? actual.alumnos.map((a) => a.alumnoId);
     if (modalidad === 'INDIVIDUAL' && alumnoIds.length !== 1) {
@@ -92,7 +98,21 @@ export class ClasesService {
     return aClaseDto(actualizada);
   }
 
-  /** RF-32: cancelar borra la clase (decisión del dueño); los ingresos quedan, sin el vínculo */
+  /** Cancela la clase sin borrarla: deja de contar como deuda y los pagos ya hechos se conservan */
+  async cancelar(emprendimientoId: string, id: string, input: CancelarClaseInput): Promise<Clase> {
+    const actual = await this.buscarOFallar(emprendimientoId, id);
+    if (actual.canceladaEn) {
+      throw new DomainException('ESTADO_INVALIDO', 'La clase ya está cancelada.');
+    }
+    return aClaseDto(
+      await this.repo.actualizar(actual.id, {
+        canceladaEn: new Date(),
+        motivoCancelacion: input.motivo || null,
+      }),
+    );
+  }
+
+  /** Borra la clase; los ingresos quedan, sin el vínculo con ella */
   async eliminar(emprendimientoId: string, id: string): Promise<void> {
     const actual = await this.buscarOFallar(emprendimientoId, id);
     await this.repo.eliminar(actual.id);

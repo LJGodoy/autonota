@@ -5,9 +5,15 @@ const alumno = (pagada: boolean) => ({ id: 'a', nombre: 'A', activo: true, pagad
 
 describe('estadoPago', () => {
   it('debería pintar la clase según cuántos alumnos pagaron', () => {
-    expect(estadoPago({ alumnos: [] })).toBe('debe');
-    expect(estadoPago({ alumnos: [alumno(false), alumno(false)] })).toBe('debe');
-    expect(estadoPago({ alumnos: [alumno(true), alumno(false)] })).toBe('parcial');
-    expect(estadoPago({ alumnos: [alumno(true), alumno(true)] })).toBe('pagada');
+    expect(estadoPago({ cancelada: false, alumnos: [] })).toBe('debe');
+    expect(estadoPago({ cancelada: false, alumnos: [alumno(false), alumno(false)] })).toBe('debe');
+    expect(estadoPago({ cancelada: false, alumnos: [alumno(true), alumno(false)] })).toBe(
+      'parcial',
+    );
+    expect(estadoPago({ cancelada: false, alumnos: [alumno(true), alumno(true)] })).toBe('pagada');
+  });
+
+  it('debería marcar cancelada sin importar los pagos', () => {
+    expect(estadoPago({ cancelada: true, alumnos: [alumno(true)] })).toBe('cancelada');
   });
 });

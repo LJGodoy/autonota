@@ -216,26 +216,29 @@ model Alumno {
 }
 
 model Clase {
-  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  emprendimientoId String         @map("emprendimiento_id") @db.Uuid
-  titulo           String?        @db.VarChar(100)
-  modalidad        ModalidadClase
-  inicio           DateTime       @db.Timestamptz(6)
-  fin              DateTime       @db.Timestamptz(6)
-  creadoEn         DateTime       @default(now()) @map("creado_en") @db.Timestamptz(6)
-  actualizadoEn    DateTime       @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(6)
-  emprendimiento   Emprendimiento @relation(fields: [emprendimientoId], references: [id], onDelete: Cascade)
-  alumnos          ClaseAlumno[]
+  id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  emprendimientoId  String         @map("emprendimiento_id") @db.Uuid
+  titulo            String?        @db.VarChar(100)
+  modalidad         ModalidadClase
+  inicio            DateTime       @db.Timestamptz(6)
+  fin               DateTime       @db.Timestamptz(6)
+  /// Cancelada: se conserva como registro, no se debe ni se edita
+  canceladaEn       DateTime?      @map("cancelada_en") @db.Timestamptz(6)
+  motivoCancelacion String?        @map("motivo_cancelacion") @db.VarChar(200)
+  creadoEn          DateTime       @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn     DateTime       @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(6)
+  emprendimiento    Emprendimiento @relation(fields: [emprendimientoId], references: [id], onDelete: Cascade)
+  alumnos           ClaseAlumno[]
 
   @@index([emprendimientoId, inicio], map: "ix_clases_emprendimiento_inicio")
   @@map("clases")
 }
 
 model ClaseAlumno {
-  claseId  String @map("clase_id") @db.Uuid
-  alumnoId String @map("alumno_id") @db.Uuid
-  clase    Clase  @relation(fields: [claseId], references: [id], onDelete: Cascade)
-  alumno   Alumno @relation(fields: [alumnoId], references: [id], onDelete: Cascade)
+  claseId  String     @map("clase_id") @db.Uuid
+  alumnoId String     @map("alumno_id") @db.Uuid
+  clase    Clase      @relation(fields: [claseId], references: [id], onDelete: Cascade)
+  alumno   Alumno     @relation(fields: [alumnoId], references: [id], onDelete: Cascade)
   pago     PagoClase?
 
   @@id([claseId, alumnoId])

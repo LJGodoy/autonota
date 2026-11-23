@@ -84,6 +84,7 @@ export class AlumnosService extends PersonasService {
       inicio: c.inicio.toISOString(),
       fin: c.fin.toISOString(),
       pagada: pago !== null,
+      cancelada: c.canceladaEn !== null,
     }));
   }
 

@@ -71,7 +71,17 @@ export function useGuardarClase(eid: string) {
   });
 }
 
-/** Cancelar = borrar la clase; los ingresos quedan */
+/** Cancela la clase sin borrarla */
+export function useCancelarClase(eid: string) {
+  const invalidar = useInvalidar(eid);
+  return useMutation({
+    mutationFn: ({ id, motivo }: { id: string; motivo: string }) =>
+      api<Clase>(`${base(eid)}/clases/${id}/cancelar`, { method: 'POST', body: { motivo } }),
+    onSuccess: invalidar,
+  });
+}
+
+/** Borra la clase; los ingresos quedan */
 export function useEliminarClase(eid: string) {
   const invalidar = useInvalidar(eid);
   return useMutation({

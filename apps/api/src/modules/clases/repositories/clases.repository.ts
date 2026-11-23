@@ -90,7 +90,7 @@ export class ClasesRepository {
     );
   }
 
-  /** Cancelar = borrar; los pagos de la clase pierden el vínculo pero el ingreso queda */
+  /** Borra la clase; los pagos de la clase pierden el vínculo pero el ingreso queda */
   async eliminar(id: string): Promise<void> {
     await this.prisma.clase.delete({ where: { id } });
   }
