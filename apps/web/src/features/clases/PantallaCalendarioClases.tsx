@@ -4,7 +4,6 @@ import type { EventInput } from '@fullcalendar/core';
 import type { Clase } from '@autonota/shared';
 import { Boton } from '../../components/Boton';
 import { Calendario } from '../../components/Calendario';
-import { Campo } from '../../components/Campo';
 import { Confirmacion } from '../../components/Confirmacion';
 import { CopiarSemana } from '../../components/CopiarSemana';
 import { Dialogo } from '../../components/Dialogo';
@@ -18,6 +17,7 @@ import {
   useClases,
   useCopiarSemanaClases,
   useEliminarClase,
+  useReactivarClase,
 } from './api';
 import { estadoPago } from './estadoPago';
 import { FormClase } from './FormClase';
@@ -37,12 +37,12 @@ export function PantallaCalendarioClases() {
     duracionMinutos?: number;
   } | null>(null);
   const [elegida, setElegida] = useState<string | null>(null);
-  const [paso, setPaso] = useState<'ver' | 'editar' | 'cancelar' | 'eliminar'>('ver');
-  const [motivo, setMotivo] = useState('');
+  const [paso, setPaso] = useState<'ver' | 'editar' | 'eliminar'>('ver');
   const [borrando, setBorrando] = useState(false);
   const clases = useClases(emp.id, rango.desde, rango.hasta);
   const eliminar = useEliminarClase(emp.id);
   const cancelar = useCancelarClase(emp.id);
+  const reactivar = useReactivarClase(emp.id);
   const borrar = useBorrarClasesDelRango(emp.id);
   const copiar = useCopiarSemanaClases(emp.id);
   const esDia = rango.desde && Date.parse(rango.hasta) - Date.parse(rango.desde) <= 86_400_000;
@@ -73,7 +73,6 @@ export function PantallaCalendarioClases() {
   const cerrar = () => {
     setElegida(null);
     setPaso('ver');
-    setMotivo('');
   };
 
   return (
@@ -174,26 +173,6 @@ export function PantallaCalendarioClases() {
       )}
       {nueva && <FormClase eid={emp.id} inicial={nueva} alCerrar={() => setNueva(null)} />}
       {clase && paso === 'editar' && <FormClase eid={emp.id} clase={clase} alCerrar={cerrar} />}
-      {clase && paso === 'cancelar' && (
-        <Confirmacion
-          titulo="¿Cancelar la clase?"
-          textoConfirmar="Cancelar clase"
-          alConfirmar={() => cancelar.mutateAsync({ id: clase.id, motivo })}
-          alCerrar={cerrar}
-        >
-          <p>
-            La clase del {formatearFechaHora(clase.inicio)} queda registrada como cancelada y no se
-            cobra.
-          </p>
-          <Campo
-            etiqueta="Motivo (opcional)"
-            placeholder="Me enfermé"
-            maxLength={200}
-            value={motivo}
-            onChange={(e) => setMotivo(e.target.value)}
-          />
-        </Confirmacion>
-      )}
       {clase && paso === 'eliminar' && (
         <Confirmacion
           titulo="¿Eliminar la clase?"
@@ -223,7 +202,8 @@ export function PantallaCalendarioClases() {
                   {a.nombre}
                   {a.activo ? '' : ' (dado de baja)'}
                 </Link>
-                <MarcaPago pagada={a.pagada} />
+                {/* Una clase cancelada no se debe: solo se marca si ya estaba pagada */}
+                {(!clase.cancelada || a.pagada) && <MarcaPago pagada={a.pagada} />}
               </li>
             ))}
           </ul>
@@ -237,15 +217,31 @@ export function PantallaCalendarioClases() {
             {!clase.cancelada && (
               <>
                 <Boton onClick={() => setPaso('editar')}>Editar o reprogramar</Boton>
-                <Boton variante="secundario" onClick={() => setPaso('cancelar')}>
+                <Boton
+                  variante="secundario"
+                  disabled={cancelar.isPending}
+                  onClick={() => cancelar.mutate(clase.id)}
+                >
                   Cancelar clase
                 </Boton>
               </>
+            )}
+            {clase.cancelada && (
+              <Boton
+                variante="secundario"
+                disabled={reactivar.isPending}
+                onClick={() => reactivar.mutate(clase.id)}
+              >
+                Revertir cancelación
+              </Boton>
             )}
             <Boton variante="peligro" onClick={() => setPaso('eliminar')}>
               Eliminar clase
             </Boton>
           </div>
+          {(cancelar.error || reactivar.error) && (
+            <MensajeError error={cancelar.error ?? reactivar.error} />
+          )}
         </Dialogo>
       )}
     </div>

@@ -389,7 +389,20 @@ describe('calendario de clases', () => {
     expect(copia.body.creadas.every((c: { cancelada: boolean }) => !c.cancelada)).toBe(true);
     expect(copia.body.creadas[0].motivoCancelacion).toBeNull();
 
-    // Una cancelada se puede borrar
+    // Reactivar: vuelve a ser una clase normal que se debe; una no cancelada da 409
+    const reactivada = await http().post(`${base}/clases/${c1}/reactivar`).set(auth(s)).expect(200);
+    expect(reactivada.body).toMatchObject({ cancelada: false, motivoCancelacion: null });
+    expect(
+      (await http().post(`${base}/clases/${c1}/reactivar`).set(auth(s)).expect(409)).body.error
+        .code,
+    ).toBe('ESTADO_INVALIDO');
+    expect(await debe()).toMatchObject({ clasesAdeudadas: 5, clasesDelMes: 5 }); // 2 + las 3 copias
+    const impagas2 = await http()
+      .get(`${base}/alumnos/${ana}/clases?impagas=true`)
+      .set(auth(s))
+      .expect(200);
+    expect(impagas2.body.map((c: { id: string }) => c.id).slice(0, 2)).toEqual([c1, c2]);
+
     await http().delete(`${base}/clases/${c1}`).set(auth(s)).expect(204);
   });
 

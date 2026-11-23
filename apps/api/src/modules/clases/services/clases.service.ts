@@ -112,6 +112,17 @@ export class ClasesService {
     );
   }
 
+  /** Revierte la cancelación: vuelve a ser una clase normal */
+  async reactivar(emprendimientoId: string, id: string): Promise<Clase> {
+    const actual = await this.buscarOFallar(emprendimientoId, id);
+    if (!actual.canceladaEn) {
+      throw new DomainException('ESTADO_INVALIDO', 'La clase no está cancelada.');
+    }
+    return aClaseDto(
+      await this.repo.actualizar(actual.id, { canceladaEn: null, motivoCancelacion: null }),
+    );
+  }
+
   /** Borra la clase; los ingresos quedan, sin el vínculo con ella */
   async eliminar(emprendimientoId: string, id: string): Promise<void> {
     const actual = await this.buscarOFallar(emprendimientoId, id);

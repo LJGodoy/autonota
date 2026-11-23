@@ -75,8 +75,19 @@ export function useGuardarClase(eid: string) {
 export function useCancelarClase(eid: string) {
   const invalidar = useInvalidar(eid);
   return useMutation({
-    mutationFn: ({ id, motivo }: { id: string; motivo: string }) =>
-      api<Clase>(`${base(eid)}/clases/${id}/cancelar`, { method: 'POST', body: { motivo } }),
+    // Cuerpo vacío: la API valida un objeto (el motivo es opcional) y rechaza el POST sin cuerpo
+    mutationFn: (id: string) =>
+      api<Clase>(`${base(eid)}/clases/${id}/cancelar`, { method: 'POST', body: {} }),
+    onSuccess: invalidar,
+  });
+}
+
+/** Revierte la cancelación de la clase */
+export function useReactivarClase(eid: string) {
+  const invalidar = useInvalidar(eid);
+  return useMutation({
+    mutationFn: (id: string) =>
+      api<Clase>(`${base(eid)}/clases/${id}/reactivar`, { method: 'POST' }),
     onSuccess: invalidar,
   });
 }

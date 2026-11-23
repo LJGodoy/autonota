@@ -113,6 +113,17 @@ export class ClasesController {
     return this.servicio.cancelar(emp.id, id, dto);
   }
 
+  @Post(':id/reactivar')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Revierte la cancelación: la clase vuelve a ser una clase normal' })
+  @ApiResponse({ status: 409, description: 'ESTADO_INVALIDO: la clase no estaba cancelada' })
+  reactivar(
+    @EmprendimientoActual() emp: EmprendimientoDePeticion,
+    @Param('id') id: string,
+  ): Promise<Clase> {
+    return this.servicio.reactivar(emp.id, id);
+  }
+
   @Delete()
   @ApiOperation({
     summary:
