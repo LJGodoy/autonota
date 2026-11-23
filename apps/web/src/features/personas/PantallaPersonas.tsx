@@ -3,6 +3,7 @@ import type { Alumno, Persona } from '@autonota/shared';
 import { Boton } from '../../components/Boton';
 import { Confirmacion } from '../../components/Confirmacion';
 import { Cargando, MensajeError, Vacio } from '../../components/Estados';
+import { MenuAcciones } from '../../components/MenuAcciones';
 import {
   useAnonimizarPersona,
   useBajaPersona,
@@ -16,24 +17,18 @@ import { FormPersona } from './FormPersona';
 interface Props {
   eid: string;
   recurso: Recurso;
-  /** Filtros extra arriba de la lista (por ejemplo, el mes de pago de los alumnos) */
+  /** Filtros extra arriba de la lista (por ejemplo, los alumnos que deben) */
   filtrosExtra?: ReactNode;
   filtro?: FiltroPersonas;
   marca?: (p: Alumno) => ReactNode;
-  accionesExtra?: (p: Alumno) => ReactNode;
+  /** Qué abre tocar la fila; por defecto, el formulario de edición */
+  alAbrir?: (p: Alumno) => void;
 }
 
 type Accion = { tipo: 'editar' | 'baja' | 'anonimizar'; persona: Persona } | { tipo: 'nueva' };
 
 /** Clientes (RF-19) y alumnos (RF-30): lista, alta, edición, baja, reactivación y anonimización */
-export function PantallaPersonas({
-  eid,
-  recurso,
-  filtrosExtra,
-  filtro,
-  marca,
-  accionesExtra,
-}: Props) {
+export function PantallaPersonas({ eid, recurso, filtrosExtra, filtro, marca, alAbrir }: Props) {
   const [q, setQ] = useState('');
   const [activo, setActivo] = useState(true);
   const [accion, setAccion] = useState<Accion | null>(null);
@@ -92,49 +87,38 @@ export function PantallaPersonas({
               key={p.id}
               className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-cuadricula py-2 last:border-b-0"
             >
-              <div className="min-w-0 flex-1">
+              <button
+                type="button"
+                onClick={() => (alAbrir ? alAbrir(p) : setAccion({ tipo: 'editar', persona: p }))}
+                className="min-h-11 min-w-0 flex-1 rounded-trazo text-left hover:bg-arena"
+              >
                 <p className="font-bold">{p.nombre}</p>
                 <p className="text-sm text-lapiz">
                   {[p.telefono, p.notas].filter(Boolean).join(' · ') || 'Sin datos de contacto'}
                 </p>
-              </div>
+              </button>
               {marca?.(p)}
-              <div className="flex flex-wrap justify-end gap-1">
-                {accionesExtra?.(p)}
-                {p.activo ? (
-                  <>
-                    <Boton
-                      variante="texto"
-                      className="min-h-9 px-2 text-sm"
-                      onClick={() => setAccion({ tipo: 'editar', persona: p })}
-                    >
-                      Editar
-                    </Boton>
-                    <Boton
-                      variante="texto"
-                      className="min-h-9 px-2 text-sm"
-                      onClick={() => setAccion({ tipo: 'baja', persona: p })}
-                    >
-                      Dar de baja
-                    </Boton>
-                  </>
-                ) : (
-                  <Boton
-                    variante="texto"
-                    className="min-h-9 px-2 text-sm"
-                    onClick={() => reactivar.mutate({ id: p.id, datos: { activo: true } })}
-                  >
-                    Reactivar
-                  </Boton>
-                )}
-                <Boton
-                  variante="texto"
-                  className="min-h-9 px-2 text-sm"
-                  onClick={() => setAccion({ tipo: 'anonimizar', persona: p })}
-                >
-                  Borrar datos
-                </Boton>
-              </div>
+              <MenuAcciones
+                etiqueta={`Acciones de ${p.nombre}`}
+                opciones={[
+                  { texto: 'Editar', alElegir: () => setAccion({ tipo: 'editar', persona: p }) },
+                  p.activo
+                    ? {
+                        texto: 'Eliminar',
+                        peligro: true,
+                        alElegir: () => setAccion({ tipo: 'baja', persona: p }),
+                      }
+                    : {
+                        texto: 'Reactivar',
+                        alElegir: () => reactivar.mutate({ id: p.id, datos: { activo: true } }),
+                      },
+                  {
+                    texto: 'Borrar datos',
+                    peligro: true,
+                    alElegir: () => setAccion({ tipo: 'anonimizar', persona: p }),
+                  },
+                ]}
+              />
             </li>
           ))}
         </ul>
@@ -153,14 +137,14 @@ export function PantallaPersonas({
       )}
       {accion?.tipo === 'baja' && (
         <Confirmacion
-          titulo={`¿Dar de baja a ${accion.persona.nombre}?`}
-          textoConfirmar="Dar de baja"
+          titulo={`¿Eliminar a ${accion.persona.nombre}?`}
+          textoConfirmar="Eliminar"
           alConfirmar={() => baja.mutateAsync(accion.persona.id)}
           alCerrar={() => setAccion(null)}
         >
           <p>
             Deja de aparecer en la lista de activos. Se conserva todo su historial y lo podés
-            reactivar cuando quieras.
+            reactivar desde «Dados de baja» cuando quieras.
           </p>
         </Confirmacion>
       )}

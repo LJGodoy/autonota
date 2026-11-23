@@ -4,6 +4,7 @@ import type {
   CrearTareaInput,
   EditarTareaInput,
   EstadoTareaInput,
+  FiltroRealizadas,
   FiltroTareas,
   Paginado,
   Tarea,
@@ -52,9 +53,22 @@ export class TareasService {
       estado: f.estado,
       prioridad: f.prioridad,
       orden: f.orden,
+      realizadasDesde: f.realizadasDias
+        ? new Date(Date.now() - f.realizadasDias * 86_400_000)
+        : undefined,
       saltar: (f.page - 1) * f.pageSize,
       tomar: f.pageSize,
     });
+    return { data: items.map(aTareaDto), meta: { page: f.page, pageSize: f.pageSize, total } };
+  }
+
+  async listarRealizadas(emprendimientoId: string, f: FiltroRealizadas): Promise<Paginado<Tarea>> {
+    const [items, total] = await this.repo.listarRealizadas(
+      emprendimientoId,
+      f.prioridad,
+      (f.page - 1) * f.pageSize,
+      f.pageSize,
+    );
     return { data: items.map(aTareaDto), meta: { page: f.page, pageSize: f.pageSize, total } };
   }
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NOMBRE_ESTADO_TAREA, NOMBRE_PRIORIDAD } from '@autonota/shared';
+import { ESTADOS_TAREA, NOMBRE_ESTADO_TAREA, NOMBRE_PRIORIDAD } from '@autonota/shared';
 import { Boton } from '../../components/Boton';
 import { Confirmacion } from '../../components/Confirmacion';
 import { Dialogo } from '../../components/Dialogo';
@@ -8,7 +8,7 @@ import { formatearPesos } from '../../lib/dinero';
 import { formatearFechaHora } from '../../lib/fechas';
 import { FormMovimiento } from '../movimientos/FormMovimiento';
 import { ListaMovimientos } from '../movimientos/ListaMovimientos';
-import { useEliminarTarea, useTarea } from './api';
+import { useCambiarEstadoTarea, useEliminarTarea, useTarea } from './api';
 import { FormTarea } from './FormTarea';
 
 /** Detalle con historial de estados (RF-53) y ventas vinculadas (RF-55) */
@@ -23,6 +23,7 @@ export function DetalleTarea({
 }) {
   const consulta = useTarea(eid, id);
   const eliminar = useEliminarTarea(eid);
+  const cambiar = useCambiarEstadoTarea(eid);
   const [paso, setPaso] = useState<'ver' | 'editar' | 'venta' | 'eliminar'>('ver');
   const t = consulta.data;
 
@@ -67,6 +68,23 @@ export function DetalleTarea({
             {formatearFechaHora(t.creadoEn)}
           </p>
           {t.descripcion && <p>{t.descripcion}</p>}
+          <label className="flex flex-col text-sm font-bold text-lapiz">
+            Estado
+            <select
+              value={t.estado}
+              disabled={cambiar.isPending}
+              onChange={(e) =>
+                cambiar.mutate({ id: t.id, estado: e.target.value as typeof t.estado })
+              }
+              className="min-h-10 border-0 border-b-2 border-tinta bg-transparent px-1"
+            >
+              {ESTADOS_TAREA.map((e) => (
+                <option key={e} value={e}>
+                  {NOMBRE_ESTADO_TAREA[e]}
+                </option>
+              ))}
+            </select>
+          </label>
           <section aria-labelledby="historial-tarea">
             <h3 id="historial-tarea" className="font-mano text-2xl font-bold text-cafe">
               Historial

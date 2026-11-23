@@ -50,12 +50,9 @@ describe('calendario de clases', () => {
         alumnoIds: [a1, a2],
       })
       .expect(201);
-    expect(grupal.body).toMatchObject({
-      modalidad: 'GRUPAL',
-      estado: 'PROGRAMADA',
-      duracionMinutos: 60,
-    });
+    expect(grupal.body).toMatchObject({ modalidad: 'GRUPAL', duracionMinutos: 60 });
     expect(grupal.body.alumnos).toHaveLength(2);
+    expect(grupal.body.alumnos[0].pagada).toBe(false);
     await http()
       .post(`${base}/clases`)
       .set(auth(s))
@@ -78,7 +75,7 @@ describe('calendario de clases', () => {
       .expect(400);
   });
 
-  it('debería editar alumnos, reprogramar y cancelar (RF-32)', async () => {
+  it('debería editar alumnos, reprogramar y cancelar borrando la clase (RF-32)', async () => {
     const { s, base } = await nuevo('CLASES');
     const [a1, a2] = await alumnos(s, base, 'Julián', 'Camila');
     const c = await http()
@@ -103,12 +100,36 @@ describe('calendario de clases', () => {
       .set(auth(s))
       .send({ modalidad: 'INDIVIDUAL' })
       .expect(400);
-    await http().post(`${base}/clases/${c.body.id}/cancelar`).set(auth(s)).expect(200);
-    await http()
-      .patch(`${base}/clases/${c.body.id}`)
+    await http().delete(`${base}/clases/${c.body.id}`).set(auth(s)).expect(204);
+    await http().get(`${base}/clases/${c.body.id}`).set(auth(s)).expect(404);
+  });
+
+  it('debería borrar las clases que empiezan en el rango del día o la semana', async () => {
+    const { s, base } = await nuevo('CLASES');
+    const [a1] = await alumnos(s, base, 'Julián');
+    for (const dia of ['2027-11-15', '2027-11-17', '2027-11-23'])
+      await http()
+        .post(`${base}/clases`)
+        .set(auth(s))
+        .send({
+          modalidad: 'GRUPAL',
+          inicio: hora(dia, '18:00'),
+          duracionMinutos: 60,
+          alumnoIds: [a1],
+        })
+        .expect(201);
+    const rango = (desde: string, hasta: string) =>
+      `desde=${encodeURIComponent(hora(desde, '00:00'))}&hasta=${encodeURIComponent(hora(hasta, '00:00'))}`;
+    const r = await http()
+      .delete(`${base}/clases?${rango('2027-11-15', '2027-11-22')}`)
       .set(auth(s))
-      .send({ titulo: 'x' })
-      .expect(409);
+      .expect(200);
+    expect(r.body).toEqual({ borradas: 2 });
+    const quedan = await http()
+      .get(`${base}/clases?${rango('2027-11-15', '2027-11-29')}`)
+      .set(auth(s))
+      .expect(200);
+    expect(quedan.body).toHaveLength(1);
   });
 
   it('debería copiar la semana sin alumnos dados de baja y omitir clases que quedan vacías (CU-10)', async () => {
@@ -123,7 +144,7 @@ describe('calendario de clases', () => {
     await crear([a1, a2], '2027-11-15');
     await crear([a2], '2027-11-17');
     const cancelada = await crear([a1], '2027-11-18');
-    await http().post(`${base}/clases/${cancelada.body.id}/cancelar`).set(auth(s)).expect(200);
+    await http().delete(`${base}/clases/${cancelada.body.id}`).set(auth(s)).expect(204);
     await http().delete(`${base}/alumnos/${a2}`).set(auth(s)).expect(204);
 
     const r = await http()
@@ -159,67 +180,128 @@ describe('calendario de clases', () => {
     expect(semana.body).toHaveLength(2);
   });
 
-  it('debería marcar qué alumnos pagaron un mes y listar los que no (CU-14, RF-35)', async () => {
+  it('debería registrar un pago por clase y marcar qué clases y alumnos deben (CU-14, RF-35)', async () => {
     const { s, base } = await nuevo('CLASES');
-    const [a1, a2, a3] = await alumnos(s, base, 'Ana', 'Beto', 'Ceci');
-    // Ana paga noviembre en diciembre: cuenta para noviembre
-    await http()
-      .post(`${base}/movimientos`)
-      .set(auth(s))
-      .send({
-        tipo: 'INGRESO',
-        montoCentavos: 4000000,
-        fecha: '2027-12-02',
-        alumnoId: a1,
-        mesCorrespondiente: '2027-11',
-      })
-      .expect(201);
-    await http()
-      .post(`${base}/movimientos`)
-      .set(auth(s))
-      .send({
-        tipo: 'INGRESO',
-        montoCentavos: 4000000,
-        fecha: '2027-10-05',
-        alumnoId: a2,
-        mesCorrespondiente: '2027-10',
-      })
-      .expect(201);
-    await http().delete(`${base}/alumnos/${a3}`).set(auth(s)).expect(204);
+    const [ana, beto, ceci] = await alumnos(s, base, 'Ana', 'Beto', 'Ceci');
+    const crear = async (alumnoIds: string[], inicio: string) =>
+      (
+        await http()
+          .post(`${base}/clases`)
+          .set(auth(s))
+          .send({ modalidad: 'GRUPAL', inicio, duracionMinutos: 60, alumnoIds })
+          .expect(201)
+      ).body.id as string;
+    // Clases ya dictadas (2025) y una futura
+    const c1 = await crear([ana, beto], hora('2025-11-10', '18:00'));
+    const c2 = await crear([ana], hora('2025-11-12', '18:00'));
+    const c3 = await crear([ana], hora('2027-11-15', '18:00'));
+    const clave = '0b8f6c1e-9d6a-4c33-8f2e-1a2b3c4d5e6f';
+    const pagar = () =>
+      http()
+        .post(`${base}/alumnos/${ana}/pagos`)
+        .set(auth(s))
+        .set('Idempotency-Key', clave)
+        .send({ montoCentavos: 2400000, fecha: '2025-11-12', claseIds: [c1, c2] })
+        .expect(201);
 
-    const todos = await http().get(`${base}/alumnos?mesPago=2027-11`).set(auth(s)).expect(200);
+    const pago = await pagar();
+    expect(pago.body).toMatchObject({
+      tipo: 'INGRESO',
+      alumnoId: ana,
+      mesCorrespondiente: null,
+      mesImputacion: '2025-11',
+    });
+    // Misma clave: mismo ingreso, sin duplicar
+    expect((await pagar()).body.id).toBe(pago.body.id);
+    // Una clase ya pagada o que no es del alumno
+    for (const [alumno, claseIds] of [
+      [ana, [c1]],
+      [beto, [c2]],
+    ] as const)
+      expect(
+        (
+          await http()
+            .post(`${base}/alumnos/${alumno}/pagos`)
+            .set(auth(s))
+            .send({ montoCentavos: 100, claseIds })
+            .expect(400)
+        ).body.error.code,
+      ).toBe('VALIDACION');
+    // Los pagos mensuales ya no se cargan desde movimientos
+    await http()
+      .post(`${base}/movimientos`)
+      .set(auth(s))
+      .send({ tipo: 'INGRESO', montoCentavos: 1, fecha: '2025-11-02', alumnoId: ana })
+      .expect(400);
+
+    const detalle = await http().get(`${base}/clases/${c1}`).set(auth(s)).expect(200);
     expect(
       Object.fromEntries(
-        todos.body.data.map((a: { nombre: string; pagoEnMes: boolean }) => [a.nombre, a.pagoEnMes]),
+        detalle.body.alumnos.map((a: { nombre: string; pagada: boolean }) => [a.nombre, a.pagada]),
       ),
     ).toEqual({ Ana: true, Beto: false });
-    const sinPago = await http()
-      .get(`${base}/alumnos?mesPago=2027-11&sinPago=true`)
+
+    await http().delete(`${base}/alumnos/${ceci}`).set(auth(s)).expect(204);
+    const todos = await http().get(`${base}/alumnos`).set(auth(s)).expect(200);
+    expect(
+      Object.fromEntries(
+        todos.body.data.map((a: { nombre: string; clasesAdeudadas: number }) => [
+          a.nombre,
+          a.clasesAdeudadas,
+        ]),
+      ),
+    ).toEqual({ Ana: 0, Beto: 1 });
+    const deben = await http().get(`${base}/alumnos?debe=true`).set(auth(s)).expect(200);
+    expect(deben.body.data.map((a: { nombre: string }) => a.nombre)).toEqual(['Beto']);
+
+    const delMes = await http()
+      .get(`${base}/alumnos/${ana}/clases?mes=2025-11`)
       .set(auth(s))
       .expect(200);
-    expect(sinPago.body.data.map((a: { nombre: string }) => a.nombre)).toEqual(['Beto']);
-    await http().get(`${base}/alumnos?sinPago=true`).set(auth(s)).expect(400);
+    expect(delMes.body.map((c: { id: string; pagada: boolean }) => [c.id, c.pagada])).toEqual([
+      [c1, true],
+      [c2, true],
+    ]);
+    const impagas = async () =>
+      (
+        await http().get(`${base}/alumnos/${ana}/clases?impagas=true`).set(auth(s)).expect(200)
+      ).body.map((c: { id: string }) => c.id);
+    expect(await impagas()).toEqual([c3]);
+    await http().get(`${base}/alumnos/${ana}/clases`).set(auth(s)).expect(400);
 
-    const pagos = await http().get(`${base}/alumnos/${a1}/pagos`).set(auth(s)).expect(200);
-    expect(pagos.body.data[0]).toMatchObject({
-      mesCorrespondiente: '2027-11',
-      fecha: '2027-12-02',
-    });
+    // Editar la clase conserva el pago de quien sigue en ella
+    await http()
+      .patch(`${base}/clases/${c1}`)
+      .set(auth(s))
+      .send({ alumnoIds: [ana] })
+      .expect(200);
+    expect(await impagas()).toEqual([c3]);
+    // Borrar la clase conserva el ingreso
+    await http().delete(`${base}/clases/${c1}`).set(auth(s)).expect(204);
+    const pagos = await http().get(`${base}/alumnos/${ana}/pagos`).set(auth(s)).expect(200);
+    expect(pagos.body.data).toEqual([expect.objectContaining({ id: pago.body.id })]);
+    // Borrar el ingreso deja la clase impaga
+    await http().delete(`${base}/movimientos/${pago.body.id}`).set(auth(s)).expect(204);
+    expect(await impagas()).toEqual([c2, c3]);
   });
 
   it('debería anonimizar un alumno y conservar sus pagos (CU-18)', async () => {
     const { s, base } = await nuevo('CLASES');
     const [a1] = await alumnos(s, base, 'Florencia');
-    await http()
-      .post(`${base}/movimientos`)
+    const clase = await http()
+      .post(`${base}/clases`)
       .set(auth(s))
       .send({
-        tipo: 'INGRESO',
-        montoCentavos: 100,
-        fecha: '2027-11-02',
-        alumnoId: a1,
-        mesCorrespondiente: '2027-11',
+        modalidad: 'INDIVIDUAL',
+        inicio: hora('2025-11-10', '18:00'),
+        duracionMinutos: 60,
+        alumnoIds: [a1],
       })
+      .expect(201);
+    await http()
+      .post(`${base}/alumnos/${a1}/pagos`)
+      .set(auth(s))
+      .send({ montoCentavos: 100, fecha: '2025-11-10', claseIds: [clase.body.id] })
       .expect(201);
     expect(
       (await http().post(`${base}/alumnos/${a1}/anonimizar`).set(auth(s)).expect(200)).body.nombre,
@@ -275,6 +357,34 @@ describe('ventas y anotaciones', () => {
       .set(auth(s))
       .send({ prioridad: 'BAJA', titulo: 'Harina' })
       .expect(200);
+  });
+
+  it('debería listar realizadas por fecha de finalización, de a pocas y con filtro de días', async () => {
+    const { s, base } = await nuevo('VENTAS');
+    const ids: string[] = [];
+    for (const titulo of ['A', 'B', 'C']) {
+      const t = await http().post(`${base}/tareas`).set(auth(s)).send({ titulo }).expect(201);
+      ids.push(t.body.id);
+    }
+    for (const id of [ids[1], ids[0], ids[2]]) {
+      await http().patch(`${base}/tareas/${id}/estado`).set(auth(s)).send({ estado: 'REALIZADA' });
+    }
+    // Editar una realizada no cambia su fecha de finalización
+    await http().patch(`${base}/tareas/${ids[1]}`).set(auth(s)).send({ titulo: 'B2' }).expect(200);
+
+    const p1 = await http().get(`${base}/tareas/realizadas?pageSize=2`).set(auth(s)).expect(200);
+    expect(p1.body.data.map((t: { titulo: string }) => t.titulo)).toEqual(['C', 'A']);
+    expect(p1.body.meta).toMatchObject({ page: 1, pageSize: 2, total: 3 });
+    const p2 = await http()
+      .get(`${base}/tareas/realizadas?pageSize=2&page=2`)
+      .set(auth(s))
+      .expect(200);
+    expect(p2.body.data.map((t: { titulo: string }) => t.titulo)).toEqual(['B2']);
+    await http().get(`${base}/tareas/realizadas?pageSize=51`).set(auth(s)).expect(400);
+    // Todas se terminaron hoy: entran en los últimos 7 días
+    expect((await http().get(`${base}/tareas?realizadasDias=7`).set(auth(s))).body.meta.total).toBe(
+      3,
+    );
   });
 
   it('debería vincular ventas a una tarea y conservarlas al borrarla (RF-55)', async () => {

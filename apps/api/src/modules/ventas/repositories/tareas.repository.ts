@@ -13,6 +13,8 @@ export interface FiltroTareasRepo {
   estado?: EstadoTarea;
   prioridad?: PrioridadTarea;
   orden: 'creadoEn' | 'prioridad';
+  /** Solo realizadas terminadas desde esta fecha; las demás no se filtran */
+  realizadasDesde?: Date;
   saltar: number;
   tomar: number;
 }
@@ -27,6 +29,17 @@ export class TareasRepository {
       emprendimientoId,
       estado: f.estado,
       prioridad: f.prioridad,
+      // La última fila de historial de una realizada es siempre su paso a REALIZADA
+      ...(f.realizadasDesde && {
+        OR: [
+          { estado: { not: 'REALIZADA' } },
+          {
+            historial: {
+              some: { estadoNuevo: 'REALIZADA', cambiadoEn: { gte: f.realizadasDesde } },
+            },
+          },
+        ],
+      }),
     };
     const orderBy: Prisma.TareaOrderByWithRelationInput[] =
       f.orden === 'prioridad'
@@ -36,6 +49,28 @@ export class TareasRepository {
       this.prisma.tarea.findMany({ where, orderBy, skip: f.saltar, take: f.tomar }),
       this.prisma.tarea.count({ where }),
     ]);
+  }
+
+  /** Realizadas, la terminada más recientemente primero (fecha = último paso a REALIZADA) */
+  async listarRealizadas(
+    emprendimientoId: string,
+    prioridad: PrioridadTarea | undefined,
+    saltar: number,
+    tomar: number,
+  ): Promise<[Tarea[], number]> {
+    const filas = await this.prisma.$queryRaw<{ id: string }[]>`
+      SELECT t.id FROM tareas t
+      WHERE t.emprendimiento_id = ${emprendimientoId}::uuid AND t.estado = 'REALIZADA'
+        AND (${prioridad ?? null}::prioridad_tarea IS NULL OR t.prioridad = ${prioridad ?? null}::prioridad_tarea)
+      ORDER BY (SELECT max(h.cambiado_en) FROM tareas_historial h
+                WHERE h.tarea_id = t.id AND h.estado_nuevo = 'REALIZADA') DESC NULLS LAST, t.id
+      LIMIT ${tomar} OFFSET ${saltar}`;
+    const [tareas, total] = await this.prisma.$transaction([
+      this.prisma.tarea.findMany({ where: { id: { in: filas.map((f) => f.id) } } }),
+      this.prisma.tarea.count({ where: { emprendimientoId, estado: 'REALIZADA', prioridad } }),
+    ]);
+    const orden = new Map(filas.map((f, i) => [f.id, i]));
+    return [tareas.sort((a, b) => orden.get(a.id)! - orden.get(b.id)!), total];
   }
 
   buscar(id: string, emprendimientoId: string): Promise<TareaConDetalle | null> {

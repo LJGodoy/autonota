@@ -1,4 +1,4 @@
-import type { EstadoTurno, PrioridadTarea, TipoEmprendimiento } from '@autonota/shared';
+import type { EstadoTurno, TipoEmprendimiento } from '@autonota/shared';
 import { NOMBRE_TIPO_EMPRENDIMIENTO } from '@autonota/shared';
 
 const BASE =
@@ -21,26 +21,6 @@ export function EtiquetaEstadoTurno({ estado }: { estado: EstadoTurno }) {
     <span className={`${BASE} ${e.clase}`}>
       {e.marca && <span aria-hidden="true">{e.marca}</span>}
       {e.texto}
-    </span>
-  );
-}
-
-const SIGNOS: Record<PrioridadTarea, { signos: string; texto: string }> = {
-  BAJA: { signos: '!', texto: 'Prioridad baja' },
-  MEDIA: { signos: '!!', texto: 'Prioridad media' },
-  ALTA: { signos: '!!!', texto: 'Prioridad alta' },
-};
-
-/** Prioridad marcada en el margen con signos de exclamación escritos en cafe roja */
-export function MarcaPrioridad({ prioridad }: { prioridad: PrioridadTarea }) {
-  const p = SIGNOS[prioridad];
-  return (
-    <span
-      className="font-mano text-2xl leading-none font-bold text-rojo"
-      role="img"
-      aria-label={p.texto}
-    >
-      {p.signos}
     </span>
   );
 }

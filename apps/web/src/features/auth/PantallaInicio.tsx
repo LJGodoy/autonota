@@ -63,17 +63,14 @@ function HojaDeEjemplo() {
 
 export function PantallaInicio() {
   return (
-    <div className="flex flex-col gap-12 py-6 sm:py-10">
+    <div className="flex flex-col gap-10 py-4 sm:py-6">
       <section className="grid items-center gap-8 md:grid-cols-[1.1fr_1fr] md:gap-12">
-        <div className="flex flex-col gap-5">
-          <h1 className="font-mano text-5xl leading-[1.05] font-bold text-cafe sm:text-6xl">
+        <div className="flex flex-col gap-4">
+          <h1 className="font-mano text-4xl leading-[1.05] font-bold text-cafe sm:text-5xl">
             Tu cuaderno de trabajo, que hace{' '}
             <span className="resaltado text-tinta">solo las cuentas.</span>
           </h1>
-          <p className="max-w-[46ch] text-lg text-lapiz">
-            AutoNota es gratis y te ayuda a organizar turnos, clases o pedidos, y a saber cuánto
-            entra y cuánto sale de tu emprendimiento cada mes.
-          </p>
+          <HojaDeEjemplo />
         </div>
         <div className="flex flex-col gap-4 rounded-trazo-2 border border-linea bg-hoja p-5 shadow-nota">
           <h2 className="font-mano text-3xl font-bold text-cafe">Ingresar</h2>
@@ -88,7 +85,10 @@ export function PantallaInicio() {
             <p>Probá una cuenta de ejemplo con los tres tipos de negocio cargados.</p>
             <BotonDemo />
           </div>
-          <HojaDeEjemplo />
+          <p className="max-w-[46ch] text-lg text-lapiz">
+            AutoNota es gratis y te ayuda a organizar turnos, clases o pedidos, y a saber cuánto
+            entra y cuánto sale de tu emprendimiento cada mes.
+          </p>
         </div>
 
         <section aria-labelledby="tipos" className="flex flex-col gap-4">

@@ -93,13 +93,17 @@ describe('esquema de la base de datos', () => {
     ]);
   });
 
-  it('debería rechazar un pago de alumno sin mes, un monto no positivo y un gasto vinculado', async () => {
+  it('debería rechazar un mes sin alumno, un monto no positivo y un gasto vinculado', async () => {
     const emp = await crearEmprendimiento('CLASES');
     const alumno = await prisma.alumno.create({ data: { emprendimientoId: emp.id, nombre: 'A' } });
     const base = { emprendimientoId: emp.id, fecha: new Date('2026-11-01') };
+    // Pago por clase: alumno sin mes, permitido; mes sin alumno, no
+    await prisma.movimiento.create({
+      data: { ...base, tipo: 'INGRESO', montoCentavos: 1n, alumnoId: alumno.id },
+    });
     await expect(
       prisma.movimiento.create({
-        data: { ...base, tipo: 'INGRESO', montoCentavos: 1n, alumnoId: alumno.id },
+        data: { ...base, tipo: 'INGRESO', montoCentavos: 1n, mesCorrespondiente: base.fecha },
       }),
     ).rejects.toThrow();
     await expect(

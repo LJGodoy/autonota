@@ -54,11 +54,7 @@ export function DialogoRenombrar({ emprendimiento, alCerrar }: Props) {
 }
 
 /** CU-05 (RF-06): eliminación definitiva, confirmando con el nombre */
-export function DialogoEliminar({
-  emprendimiento,
-  alCerrar,
-  alEliminar,
-}: Props & { alEliminar?: () => void }) {
+export function DialogoEliminar({ emprendimiento, alCerrar }: Props) {
   const eliminar = useEliminarEmprendimiento();
   const [confirmacion, setConfirmacion] = useState('');
   const [error, setError] = useState('');
@@ -69,7 +65,6 @@ export function DialogoEliminar({
     try {
       await eliminar.mutateAsync({ id: emprendimiento.id, confirmarNombre: confirmacion });
       alCerrar();
-      alEliminar?.();
     } catch (e) {
       setError(mensaje(e));
     }

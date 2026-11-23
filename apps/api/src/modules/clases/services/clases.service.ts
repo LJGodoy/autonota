@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type {
+  BorrarClasesInput,
   Clase,
   CopiarSemanaInput,
   CrearClaseInput,
@@ -26,8 +27,7 @@ export function aClaseDto(c: ClaseConAlumnos): Clase {
     inicio: c.inicio.toISOString(),
     fin: c.fin.toISOString(),
     duracionMinutos: Math.round((c.fin.getTime() - c.inicio.getTime()) / 60000),
-    estado: c.estado,
-    alumnos: c.alumnos.map((ca) => ca.alumno),
+    alumnos: c.alumnos.map((ca) => ({ ...ca.alumno, pagada: ca.pago !== null })),
   };
 }
 
@@ -65,11 +65,9 @@ export class ClasesService {
     );
   }
 
-  /** RF-32: edita o reprograma una clase PROGRAMADA, incluida la lista de alumnos */
+  /** RF-32: edita o reprograma una clase, incluida la lista de alumnos */
   async editar(emprendimientoId: string, id: string, input: EditarClaseInput): Promise<Clase> {
     const actual = await this.buscarOFallar(emprendimientoId, id);
-    if (actual.estado !== 'PROGRAMADA')
-      throw new DomainException('ESTADO_INVALIDO', 'Solo se puede editar una clase programada.');
     const modalidad = input.modalidad ?? actual.modalidad;
     const alumnoIds = input.alumnoIds ?? actual.alumnos.map((a) => a.alumnoId);
     if (modalidad === 'INDIVIDUAL' && alumnoIds.length !== 1) {
@@ -94,16 +92,27 @@ export class ClasesService {
     return aClaseDto(actualizada);
   }
 
-  /** RF-32 */
-  async cancelar(emprendimientoId: string, id: string): Promise<Clase> {
+  /** RF-32: cancelar borra la clase (decisión del dueño); los ingresos quedan, sin el vínculo */
+  async eliminar(emprendimientoId: string, id: string): Promise<void> {
     const actual = await this.buscarOFallar(emprendimientoId, id);
-    if (actual.estado !== 'PROGRAMADA')
-      throw new DomainException('ESTADO_INVALIDO', 'La clase ya está cancelada.');
-    return aClaseDto(await this.repo.actualizar(actual.id, { estado: 'CANCELADA' }));
+    await this.repo.eliminar(actual.id);
+  }
+
+  /** Borrado de las clases del día o la semana que se ve en el calendario */
+  async borrarDelRango(
+    emprendimientoId: string,
+    input: BorrarClasesInput,
+  ): Promise<{ borradas: number }> {
+    const borradas = await this.repo.eliminarQueEmpiezanEn(
+      emprendimientoId,
+      new Date(input.desde),
+      new Date(input.hasta),
+    );
+    return { borradas };
   }
 
   /**
-   * CU-10 (RF-37): copia las clases no canceladas a la semana siguiente con sus alumnos activos.
+   * CU-10 (RF-37): copia las clases a la semana siguiente con sus alumnos activos.
    * Omite las que quedan sin alumnos. Con forzar, las copias se suman a las existentes.
    */
   async copiarSemana(
@@ -113,14 +122,14 @@ export class ClasesService {
     const [a, m, d] = input.semanaOrigen.split('-').map(Number) as [number, number, number];
     const origen = desdeHoraArgentina(a, m, d);
     const destino = new Date(origen.getTime() + MS_SEMANA);
-    const existentes = await this.repo.noCanceladasQueEmpiezanEn(
+    const existentes = await this.repo.queEmpiezanEn(
       emprendimientoId,
       destino,
       new Date(destino.getTime() + MS_SEMANA),
     );
     if (existentes.length > 0 && !input.forzar) throw new DomainException('SEMANA_DESTINO_OCUPADA');
 
-    const fuente = await this.repo.noCanceladasQueEmpiezanEn(emprendimientoId, origen, destino);
+    const fuente = await this.repo.queEmpiezanEn(emprendimientoId, origen, destino);
     const nuevas: NuevaClase[] = [];
     const omitidas: ResultadoCopiaClases['omitidas'] = [];
     for (const c of fuente) {

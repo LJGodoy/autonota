@@ -14,8 +14,8 @@ export type Recurso = 'clientes' | 'alumnos';
 export interface FiltroPersonas {
   q?: string;
   activo?: boolean;
-  mesPago?: string;
-  sinPago?: boolean;
+  /** Solo alumnos: los que deben clases ya dictadas */
+  debe?: boolean;
   pageSize?: number;
 }
 
@@ -30,8 +30,7 @@ export function usePersonas(eid: string, recurso: Recurso, f: FiltroPersonas = {
         activo: String(f.activo ?? true),
       });
       if (f.q) q.set('q', f.q);
-      if (f.mesPago) q.set('mesPago', f.mesPago);
-      if (f.sinPago) q.set('sinPago', 'true');
+      if (f.debe) q.set('debe', 'true');
       return api<Paginado<Alumno>>(`/emprendimientos/${eid}/${recurso}?${q.toString()}`);
     },
     placeholderData: keepPreviousData,

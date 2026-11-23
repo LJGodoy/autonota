@@ -78,18 +78,25 @@ test.describe.serial('demo con los tres tipos de negocio', () => {
     await expect(page.locator('dialog[open]')).toContainText('Cobrado: $ 5.000,00');
   });
 
-  test('CU-09: debería registrar el pago de un alumno y dejar de listarlo como sin pago', async () => {
+  test('CU-09: debería registrar el pago por clase de un alumno y dejar de listarlo como deudor', async () => {
     await abrirEmprendimiento(page, 'Clases de tenis de ejemplo');
-    await page.getByRole('link', { name: 'Alumnos' }).click();
-    await page.getByText('Solo los que no pagaron').click();
-    const fila = page.locator('ul li').filter({ hasText: 'Sin pago' }).first();
+    const panel = page.locator('aside');
+    await panel.getByText('Solo los que deben').click();
+    const fila = panel.locator('ul li').filter({ hasText: 'Debe' }).first();
     const nombre = (await fila.locator('p').first().textContent()) ?? '';
-    await fila.getByRole('button', { name: '+ Pago' }).click();
+    await fila.getByRole('button').first().click();
+    await expect(page.getByRole('heading', { name: nombre })).toBeVisible();
+    await page.getByRole('button', { name: 'Registrar pago' }).click();
     const dialogo = page.locator('dialog[open]');
-    await dialogo.getByLabel('Monto en pesos').fill('40.000');
-    await dialogo.getByRole('button', { name: 'Guardar cobro' }).click();
+    const clases = dialogo.getByRole('checkbox');
+    await expect(clases.first()).toBeVisible();
+    for (const casilla of await clases.all()) await casilla.check();
+    await dialogo.getByLabel('Monto total en pesos').fill('40.000');
+    await dialogo.getByRole('button', { name: 'Guardar pago' }).click();
     await expect(dialogo).toBeHidden();
-    await expect(page.locator('ul li').filter({ hasText: nombre })).toHaveCount(0);
+    await page.getByRole('link', { name: '← Volver al calendario' }).click();
+    await page.locator('aside').getByText('Solo los que deben').click();
+    await expect(page.locator('aside ul li').filter({ hasText: nombre })).toHaveCount(0);
   });
 
   test('CU-10: debería copiar la semana anterior de clases', async () => {

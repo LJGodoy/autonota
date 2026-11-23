@@ -44,53 +44,28 @@ export const esquemaCrearMovimiento = z
     fecha: esquemaFecha,
     descripcion: esquemaDescripcion.nullish(),
     medioPago: esquemaMedioPago.nullish(),
-    alumnoId: esquemaUuid('Alumno').optional(),
-    mesCorrespondiente: esquemaMes.optional(),
     tareaId: esquemaUuid('Tarea').optional(),
   })
   .strict()
   .superRefine((d, ctx) => {
-    // RF-34: alumnoId y mesCorrespondiente van siempre juntos; la API no completa el mes
-    if (d.alumnoId && !d.mesCorrespondiente) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['mesCorrespondiente'],
-        message: 'Elegí el mes al que corresponde el pago',
-      });
-    }
-    if (d.mesCorrespondiente && !d.alumnoId) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['alumnoId'],
-        message: 'Elegí el alumno que hizo el pago',
-      });
-    }
-    // Un gasto no se vincula con alumnos ni tareas
-    if (d.tipo === 'GASTO' && (d.alumnoId || d.tareaId)) {
+    // Un gasto no se vincula con tareas. Los pagos de alumnos van por /alumnos/:id/pagos
+    if (d.tipo === 'GASTO' && d.tareaId) {
       ctx.addIssue({
         code: 'custom',
         path: ['tipo'],
-        message: 'Un gasto no se vincula con alumnos ni tareas',
-      });
-    }
-    if (d.alumnoId && d.tareaId) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['tareaId'],
-        message: 'Un movimiento se vincula con un alumno o con una tarea, no con ambos',
+        message: 'Un gasto no se vincula con tareas',
       });
     }
   });
 export type CrearMovimientoInput = z.infer<typeof esquemaCrearMovimiento>;
 
-/** RF-07: corrige monto, fecha, descripción, medio de pago o mes. El tipo y los vínculos no cambian. */
+/** RF-07: corrige monto, fecha, descripción o medio de pago. El tipo y los vínculos no cambian. */
 export const esquemaEditarMovimiento = z
   .object({
     montoCentavos: esquemaMontoCentavos.optional(),
     fecha: esquemaFecha.optional(),
     descripcion: esquemaDescripcion.nullable().optional(),
     medioPago: esquemaMedioPago.nullable().optional(),
-    mesCorrespondiente: esquemaMes.optional(),
   })
   .strict()
   .refine((d) => Object.keys(d).length > 0, { message: 'No hay cambios para guardar' });
@@ -153,7 +128,7 @@ export interface Movimiento {
   turnoId: string | null;
   alumnoId: string | null;
   tareaId: string | null;
-  /** AAAA-MM; solo en pagos de alumnos */
+  /** AAAA-MM; solo en los pagos mensuales de alumnos anteriores al pago por clase */
   mesCorrespondiente: string | null;
   /** AAAA-MM: mes en el que cuenta para las estadísticas (Parte 3, sección 4.2) */
   mesImputacion: string;

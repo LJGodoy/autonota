@@ -16,6 +16,7 @@ import {
   esquemaCrearTarea,
   esquemaEditarTarea,
   esquemaEstadoTarea,
+  esquemaFiltroRealizadas,
   esquemaFiltroTareas,
   type Paginado,
   type Tarea,
@@ -32,6 +33,7 @@ import { TareasService } from '../services/tareas.service';
 class CrearTareaDto extends createZodDto(esquemaCrearTarea) {}
 class EditarTareaDto extends createZodDto(esquemaEditarTarea) {}
 class EstadoTareaDto extends createZodDto(esquemaEstadoTarea) {}
+class FiltroRealizadasDto extends createZodDto(esquemaFiltroRealizadas) {}
 class FiltroTareasDto extends createZodDto(esquemaFiltroTareas) {}
 
 /** Tareas, en la interfaz "anotaciones" (Parte 4, sección 8) */
@@ -50,6 +52,15 @@ export class TareasController {
     @Query() f: FiltroTareasDto,
   ): Promise<Paginado<Tarea>> {
     return this.servicio.listar(emp.id, f);
+  }
+
+  @Get('realizadas')
+  @ApiOperation({ summary: 'Tareas realizadas, la terminada más recientemente primero' })
+  listarRealizadas(
+    @EmprendimientoActual() emp: EmprendimientoDePeticion,
+    @Query() f: FiltroRealizadasDto,
+  ): Promise<Paginado<Tarea>> {
+    return this.servicio.listarRealizadas(emp.id, f);
   }
 
   @Post()

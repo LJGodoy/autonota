@@ -8,12 +8,16 @@ import {
   esquemaRango,
   type Persona,
 } from './comunes';
-import { esquemaMes } from './movimientos';
+import {
+  esquemaDescripcion,
+  esquemaFecha,
+  esquemaMedioPago,
+  esquemaMes,
+  esquemaMontoCentavos,
+} from './movimientos';
 
 export const MODALIDADES_CLASE = ['INDIVIDUAL', 'GRUPAL'] as const;
 export type ModalidadClase = (typeof MODALIDADES_CLASE)[number];
-export const ESTADOS_CLASE = ['PROGRAMADA', 'CANCELADA'] as const;
-export type EstadoClase = (typeof ESTADOS_CLASE)[number];
 
 const esquemaAlumnoIds = z
   .array(z.string().uuid('Alumno inválido'), { required_error: 'Elegí al menos un alumno' })
@@ -62,28 +66,50 @@ export const esquemaEditarClase = z
   .refine((d) => Object.keys(d).length > 0, { message: 'No hay cambios para guardar' });
 export type EditarClaseInput = z.infer<typeof esquemaEditarClase>;
 
-/** RF-33: rango máximo de 42 días, para la vista mensual */
+/** RF-33: rango máximo de 42 días */
 export const esquemaFiltroClases = esquemaRango(42);
 
-/** RF-38: con mesPago, cada alumno indica si tiene un pago para ese mes; con sinPago, solo los que no */
+/** Borrado de las clases que empiezan en el rango (día o semana del calendario) */
+export const esquemaBorrarClases = esquemaRango(31);
+export type BorrarClasesInput = z.infer<typeof esquemaBorrarClases>;
+
+/** Con debe=true, solo los alumnos activos con clases ya dictadas sin pagar */
 export const esquemaFiltroAlumnos = z
   .object({
     q: z.string().trim().max(100).optional(),
     activo: esquemaBooleanoQuery.default('true'),
-    mesPago: esquemaMes.optional(),
-    sinPago: esquemaBooleanoQuery.optional(),
+    debe: esquemaBooleanoQuery.optional(),
     ...esquemaPaginacion,
   })
-  .strict()
-  .refine((d) => !d.sinPago || d.mesPago, {
-    path: ['mesPago'],
-    message: 'Indicá el mes para ver quién no pagó',
-  });
+  .strict();
 export type FiltroAlumnos = z.infer<typeof esquemaFiltroAlumnos>;
 
+/** Clases de un alumno: las que empiezan en el mes, o todas las que no pagó */
+export const esquemaFiltroClasesAlumno = z
+  .object({ mes: esquemaMes.optional(), impagas: esquemaBooleanoQuery.optional() })
+  .strict()
+  .refine((d) => d.mes || d.impagas, { path: ['mes'], message: 'Indicá el mes' });
+export type FiltroClasesAlumno = z.infer<typeof esquemaFiltroClasesAlumno>;
+
+/** Pago por clase: el monto es el total de las clases elegidas (no hay precio por clase) */
+export const esquemaPagoClases = z
+  .object({
+    montoCentavos: esquemaMontoCentavos,
+    fecha: esquemaFecha.optional(),
+    medioPago: esquemaMedioPago.nullish(),
+    descripcion: esquemaDescripcion.nullish(),
+    claseIds: z
+      .array(z.string().uuid('Clase inválida'), { required_error: 'Elegí al menos una clase' })
+      .min(1, 'Elegí al menos una clase')
+      .max(100, 'Elegí hasta 100 clases')
+      .refine((ids) => new Set(ids).size === ids.length, 'Hay clases repetidas'),
+  })
+  .strict();
+export type PagoClasesInput = z.infer<typeof esquemaPagoClases>;
+
 export interface Alumno extends Persona {
-  /** Solo cuando se pide con mesPago */
-  pagoEnMes?: boolean;
+  /** Clases ya empezadas que todavía no pagó */
+  clasesAdeudadas: number;
 }
 
 export interface Clase {
@@ -93,8 +119,17 @@ export interface Clase {
   inicio: string;
   fin: string;
   duracionMinutos: number;
-  estado: EstadoClase;
-  alumnos: { id: string; nombre: string; activo: boolean }[];
+  alumnos: { id: string; nombre: string; activo: boolean; pagada: boolean }[];
+}
+
+/** Una clase vista desde el perfil del alumno */
+export interface ClaseDeAlumno {
+  id: string;
+  titulo: string | null;
+  modalidad: ModalidadClase;
+  inicio: string;
+  fin: string;
+  pagada: boolean;
 }
 
 export interface ResultadoCopiaClases {

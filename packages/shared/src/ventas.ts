@@ -37,10 +37,22 @@ export const esquemaFiltroTareas = z
     estado: esquemaEstado.optional(),
     prioridad: esquemaPrioridad.optional(),
     orden: z.enum(['creadoEn', 'prioridad']).default('creadoEn'),
+    /** Si viene, las realizadas solo se incluyen si se terminaron en los últimos N días */
+    realizadasDias: z.coerce.number().int().min(1).max(365).optional(),
     ...esquemaPaginacion,
   })
   .strict();
 export type FiltroTareas = z.infer<typeof esquemaFiltroTareas>;
+
+/** Realizadas por fecha de finalización (última primero), de a pocas */
+export const esquemaFiltroRealizadas = z
+  .object({
+    prioridad: esquemaPrioridad.optional(),
+    ...esquemaPaginacion,
+    pageSize: z.coerce.number().int().min(1).max(50).default(10),
+  })
+  .strict();
+export type FiltroRealizadas = z.infer<typeof esquemaFiltroRealizadas>;
 
 export interface Tarea {
   id: string;

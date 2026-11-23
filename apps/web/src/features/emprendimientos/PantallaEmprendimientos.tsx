@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { MAX_EMPRENDIMIENTOS, type Emprendimiento } from '@autonota/shared';
-import { Boton } from '../../components/Boton';
+import { MenuAcciones } from '../../components/MenuAcciones';
 import { Dialogo } from '../../components/Dialogo';
 import { Cargando, MensajeError } from '../../components/Estados';
 import { EtiquetaTipo, TAPA } from '../../components/EtiquetaEstado';
@@ -46,7 +46,7 @@ export function PantallaEmprendimientos() {
           {lista.map((e) => (
             <li
               key={e.id}
-              className="flex items-start gap-4 rounded-trazo-2 border border-linea bg-hoja p-4 shadow-nota"
+              className="relative flex min-h-28 items-start gap-4 rounded-trazo-2 border border-linea bg-hoja p-4 shadow-nota transition-colors hover:bg-arena"
             >
               {/* Tapa del cuaderno en miniatura, con el color del tipo de negocio */}
               <span
@@ -56,29 +56,41 @@ export function PantallaEmprendimientos() {
                 <span className="absolute inset-x-1.5 top-3.5 h-3.5 rounded-[2px] bg-hoja/90" />
               </span>
               <div className="flex min-w-0 flex-1 flex-col items-start gap-1.5">
-                <Link to={`/emprendimientos/${e.id}`} className="text-lg font-bold text-tinta">
+                {/* after:inset-0 estira el enlace sobre toda la tarjeta; el menú queda por encima (z-10) */}
+                <Link
+                  to={`/emprendimientos/${e.id}`}
+                  className="text-lg font-bold text-tinta after:absolute after:inset-0 after:content-['']"
+                >
                   {e.nombre}
                 </Link>
                 <EtiquetaTipo tipo={e.tipo} />
-                <div className="-ml-3 flex flex-wrap gap-1">
-                  <Boton
-                    variante="texto"
-                    onClick={() => setRenombrando(e)}
-                    aria-label={`Cambiar el nombre de ${e.nombre}`}
-                  >
-                    Renombrar
-                  </Boton>
-                  <Boton
-                    variante="texto"
-                    onClick={() => setEliminando(e)}
-                    aria-label={`Eliminar ${e.nombre}`}
-                  >
-                    Eliminar
-                  </Boton>
-                </div>
+              </div>
+              <div className="relative z-10 -mt-2 -mr-2">
+                <MenuAcciones
+                  etiqueta={`Acciones de ${e.nombre}`}
+                  opciones={[
+                    { texto: 'Renombrar', alElegir: () => setRenombrando(e) },
+                    { texto: 'Eliminar', alElegir: () => setEliminando(e), peligro: true },
+                  ]}
+                />
               </div>
             </li>
           ))}
+          {/* CU-04: la SPA oculta la tarjeta cuando ya hay 3; la API valida igual la regla */}
+          {hayCupo && (
+            <li className="flex">
+              <button
+                type="button"
+                onClick={() => setCreando(true)}
+                className="flex min-h-28 w-full cursor-pointer flex-col items-center justify-center rounded-trazo-2 border border-dashed border-linea bg-hoja p-4 text-cafe transition-colors hover:bg-arena"
+              >
+                <span aria-hidden="true" className="font-mano text-5xl leading-none font-bold">
+                  +
+                </span>
+                <span className="sr-only">Nuevo emprendimiento</span>
+              </button>
+            </li>
+          )}
         </ul>
       )}
 
@@ -86,14 +98,6 @@ export function PantallaEmprendimientos() {
         Usás {lista.length} de {MAX_EMPRENDIMIENTOS} emprendimientos.
       </p>
 
-      {/* CU-04: la SPA oculta el botón cuando ya hay 3; la API valida igual la regla */}
-      {hayCupo && (
-        <div>
-          <Boton onClick={() => setCreando(true)} aria-label="Nuevo emprendimiento">
-            + Nuevo emprendimiento
-          </Boton>
-        </div>
-      )}
       <Dialogo
         abierto={creando}
         titulo="Nuevo emprendimiento"

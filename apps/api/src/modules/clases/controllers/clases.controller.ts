@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Param,
@@ -12,6 +13,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
 import {
+  esquemaBorrarClases,
   esquemaCopiarSemana,
   esquemaCrearClase,
   esquemaEditarClase,
@@ -31,6 +33,7 @@ class CrearClaseDto extends createZodDto(esquemaCrearClase) {}
 class EditarClaseDto extends createZodDto(esquemaEditarClase) {}
 class FiltroClasesDto extends createZodDto(esquemaFiltroClases) {}
 class CopiarSemanaClasesDto extends createZodDto(esquemaCopiarSemana) {}
+class BorrarClasesDto extends createZodDto(esquemaBorrarClases) {}
 
 /** Clases (Parte 4, sección 7.2) */
 @ApiTags('clases')
@@ -43,7 +46,8 @@ export class ClasesController {
 
   @Get()
   @ApiOperation({
-    summary: 'Clases del rango para la vista diaria, semanal o mensual (RF-33). Máximo 42 días',
+    summary:
+      'Clases del rango para la vista diaria o semanal (RF-33), con el pago de cada alumno. Máximo 42 días',
   })
   listar(
     @EmprendimientoActual() emp: EmprendimientoDePeticion,
@@ -62,7 +66,7 @@ export class ClasesController {
   }
 
   @Post('copiar-semana')
-  @ApiOperation({ summary: 'Copia las clases no canceladas a la semana siguiente (RF-37, CU-10)' })
+  @ApiOperation({ summary: 'Copia las clases a la semana siguiente (RF-37, CU-10)' })
   @ApiResponse({ status: 201, description: '{ creadas, omitidas }' })
   @ApiResponse({ status: 409, description: 'SEMANA_DESTINO_OCUPADA' })
   copiarSemana(
@@ -83,7 +87,7 @@ export class ClasesController {
 
   @Patch(':id')
   @ApiOperation({
-    summary: 'Edita o reprograma una clase PROGRAMADA, incluida la lista de alumnos (RF-32)',
+    summary: 'Edita o reprograma una clase, incluida la lista de alumnos (RF-32)',
   })
   editar(
     @EmprendimientoActual() emp: EmprendimientoDePeticion,
@@ -93,13 +97,27 @@ export class ClasesController {
     return this.servicio.editar(emp.id, id, dto);
   }
 
-  @Post(':id/cancelar')
-  @HttpCode(200)
-  @ApiOperation({ summary: 'Cancela una clase (RF-32)' })
-  cancelar(
+  @Delete()
+  @ApiOperation({
+    summary:
+      'Borra las clases que empiezan en el rango (día o semana): { borradas }. Los ingresos quedan',
+  })
+  borrarDelRango(
+    @EmprendimientoActual() emp: EmprendimientoDePeticion,
+    @Query() dto: BorrarClasesDto,
+  ): Promise<{ borradas: number }> {
+    return this.servicio.borrarDelRango(emp.id, dto);
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  @ApiOperation({
+    summary: 'Cancelar = borrar la clase (RF-32). Sus pagos pierden el vínculo; el ingreso queda',
+  })
+  eliminar(
     @EmprendimientoActual() emp: EmprendimientoDePeticion,
     @Param('id') id: string,
-  ): Promise<Clase> {
-    return this.servicio.cancelar(emp.id, id);
+  ): Promise<void> {
+    return this.servicio.eliminar(emp.id, id);
   }
 }

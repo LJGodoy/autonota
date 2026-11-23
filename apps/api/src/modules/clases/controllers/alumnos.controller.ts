@@ -10,20 +10,24 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import {
   esquemaCrearPersona,
   esquemaEditarPersona,
   esquemaFiltroAlumnos,
+  esquemaFiltroClasesAlumno,
+  esquemaPagoClases,
   esquemaPaginacion,
   type Alumno,
+  type ClaseDeAlumno,
   type Movimiento,
   type Paginado,
   type Persona,
 } from '@autonota/shared';
 import { EmprendimientoActual } from '../../../common/auth/decoradores';
+import { ClaveIdempotencia } from '../../../common/http/clave-idempotencia.decorator';
 import type { EmprendimientoDePeticion } from '../../../common/auth/peticion';
 import {
   EmprendimientoGuard,
@@ -35,6 +39,8 @@ class CrearAlumnoDto extends createZodDto(esquemaCrearPersona) {}
 class EditarAlumnoDto extends createZodDto(esquemaEditarPersona) {}
 class FiltroAlumnosDto extends createZodDto(esquemaFiltroAlumnos) {}
 class PaginacionDto extends createZodDto(z.object(esquemaPaginacion).strict()) {}
+class FiltroClasesAlumnoDto extends createZodDto(esquemaFiltroClasesAlumno) {}
+class PagoClasesDto extends createZodDto(esquemaPagoClases) {}
 
 /** Alumnos (Parte 4, sección 7.1; RF-30, RF-35, RF-38) */
 @ApiTags('clases')
@@ -48,7 +54,7 @@ export class AlumnosController {
   @Get()
   @ApiOperation({
     summary:
-      'Lista alumnos; con mesPago agrega pagoEnMes; con sinPago=true solo los activos sin pago (RF-38)',
+      'Lista alumnos con clasesAdeudadas (clases ya empezadas sin pagar); con debe=true solo los activos que deben (RF-38)',
   })
   listar(
     @EmprendimientoActual() emp: EmprendimientoDePeticion,
@@ -73,6 +79,40 @@ export class AlumnosController {
     @Param('id') id: string,
   ): Promise<Persona> {
     return this.servicio.obtener(emp.id, id);
+  }
+
+  @Get(':id/clases')
+  @ApiOperation({
+    summary: 'Clases del alumno que empiezan en el mes, o todas las impagas, con su estado de pago',
+  })
+  clases(
+    @EmprendimientoActual() emp: EmprendimientoDePeticion,
+    @Param('id') id: string,
+    @Query() f: FiltroClasesAlumnoDto,
+  ): Promise<ClaseDeAlumno[]> {
+    return this.servicio.clases(emp.id, id, f);
+  }
+
+  @Post(':id/pagos')
+  @ApiHeader({
+    name: 'Idempotency-Key',
+    required: false,
+    description: 'UUID generado al abrir el formulario',
+  })
+  @ApiOperation({
+    summary:
+      'Pago por clase: un ingreso por el monto total y las clases impagas que cubre, en una transacción',
+  })
+  @ApiResponse({ status: 201, description: 'Movimiento' })
+  @ApiResponse({ status: 400, description: 'VALIDACION: clases ajenas o ya pagadas' })
+  @ApiResponse({ status: 409, description: 'ESTADO_INVALIDO: otra carga pagó la clase antes' })
+  registrarPago(
+    @EmprendimientoActual() emp: EmprendimientoDePeticion,
+    @Param('id') id: string,
+    @Body() dto: PagoClasesDto,
+    @ClaveIdempotencia() clave: string | undefined,
+  ): Promise<Movimiento> {
+    return this.servicio.registrarPago(emp, id, dto, clave);
   }
 
   @Get(':id/pagos')

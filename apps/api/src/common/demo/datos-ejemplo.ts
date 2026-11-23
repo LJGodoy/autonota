@@ -60,7 +60,7 @@ export async function cargarDatosEjemplo(
   const elegir = <T>(lista: readonly T[]): T => lista[Math.floor(azar() * lista.length)] as T;
 
   const turnero = await cargarTurnero(db, usuarioId, hoy, ahora, azar, elegir);
-  const clases = await cargarClases(db, usuarioId, hoy, azar, elegir);
+  const clases = await cargarClases(db, usuarioId, hoy, ahora, azar, elegir);
   const ventas = await cargarVentas(db, usuarioId, hoy, ahora, azar, elegir);
   return { emprendimientoIds: { turnero, clases, ventas } };
 }
@@ -224,6 +224,7 @@ async function cargarClases(
   db: ClienteDb,
   usuarioId: string,
   hoy: Date,
+  ahora: Date,
   azar: Azar,
   elegir: Elegir,
 ): Promise<string> {
@@ -259,7 +260,7 @@ async function cargarClases(
   await db.alumno.createMany({ data: alumnos });
   const activos = alumnos.filter((a) => a.activo);
 
-  // RF-31: clases semanales desde 3 semanas atrás hasta la semana que viene
+  // RF-31: clases semanales desde 12 semanas atrás hasta la semana que viene
   const grupoA = activos.slice(0, 5).map((a) => a.id);
   const grupoB = activos.slice(4, 9).map((a) => a.id);
   const grupoC = activos.slice(8, 14).map((a) => a.id);
@@ -292,7 +293,12 @@ async function cargarClases(
   const lunesActual = lunesDeLaSemana(hoy);
   const clases: Prisma.ClaseCreateManyInput[] = [];
   const participantes: Prisma.ClaseAlumnoCreateManyInput[] = [];
-  for (let semana = -3; semana <= 1; semana++) {
+  // Clases ya dictadas de cada alumno, por mes, para armar los pagos por clase
+  const dictadas = new Map<
+    string,
+    Map<string, { claseId: string; inicio: Date; precio: number }[]>
+  >();
+  for (let semana = -12; semana <= 1; semana++) {
     for (const p of plantilla) {
       const fecha = addDays(lunesActual, semana * 7 + p.dia);
       const inicio = inicioLocal(fecha, p.h);
@@ -304,35 +310,54 @@ async function cargarClases(
         modalidad: p.modalidad,
         inicio,
         fin: new Date(inicio.getTime() + 60 * 60000),
-        estado: semana === -1 && p.dia === 2 ? 'CANCELADA' : 'PROGRAMADA',
       });
-      for (const alumnoId of p.alumnos) participantes.push({ claseId: id, alumnoId });
+      const { anio, mes } = aHoraArgentina(inicio);
+      for (const alumnoId of p.alumnos) {
+        participantes.push({ claseId: id, alumnoId });
+        if (inicio >= ahora) continue;
+        const porMes = dictadas.get(alumnoId) ?? new Map();
+        const clave = `${anio}-${String(mes).padStart(2, '0')}`;
+        porMes.set(clave, [
+          ...(porMes.get(clave) ?? []),
+          { claseId: id, inicio, precio: p.modalidad === 'GRUPAL' ? 12000 : 18000 },
+        ]);
+        dictadas.set(alumnoId, porMes);
+      }
     }
   }
   await db.clase.createMany({ data: clases });
   await db.claseAlumno.createMany({ data: participantes });
 
-  // RF-34: pagos por mes correspondiente; en el mes actual algunos alumnos todavía no pagaron
+  // Pago por clase: los meses anteriores casi todos pagos (algunos deben la última clase);
+  // en el mes actual unos pagaron todo, otros una parte y otros nada
+  const mesActual = primerDiaDelMes(hoy).toISOString().slice(0, 7);
   const pagos: Prisma.MovimientoCreateManyInput[] = [];
-  for (let m = 4; m >= 0; m--) {
-    const mes = primerDiaDelMes(addMonths(hoy, -m));
-    for (const [i, alumno] of activos.entries()) {
-      if (m === 0 && i >= 7) continue;
-      // El primero de cada mes paga a principios del mes siguiente (cuenta en el mes asignado)
-      const fecha =
-        i === 0 && m > 0 ? addDays(primerDiaDelMes(addMonths(mes, 1)), 2) : addDays(mes, 3 + i);
-      if (fecha > hoy) continue;
+  const pagosClase: Prisma.PagoClaseCreateManyInput[] = [];
+  for (const [i, alumno] of activos.entries()) {
+    for (const [mes, lista] of dictadas.get(alumno.id) ?? []) {
+      const enCurso = mes === mesActual;
+      let pagadas = lista;
+      if (enCurso) pagadas = i % 3 === 0 ? lista : i % 3 === 1 ? lista.slice(0, -1) : [];
+      else if (i % 5 === 4) pagadas = lista.slice(0, -1);
+      if (pagadas.length === 0) continue;
+      const ultima = aHoraArgentina(pagadas[pagadas.length - 1]!.inicio);
+      const movimientoId = randomUUID();
       pagos.push({
+        id: movimientoId,
         emprendimientoId: emp.id,
         tipo: 'INGRESO',
-        montoCentavos: pesosACentavos(40000),
-        fecha,
+        montoCentavos: pesosACentavos(pagadas.reduce((t, c) => t + c.precio, 0)),
+        fecha: fechaSinHora(ultima.anio, ultima.mes, ultima.dia),
         alumnoId: alumno.id,
-        mesCorrespondiente: mes,
-        descripcion: 'Cuota mensual',
+        descripcion: pagadas.length === 1 ? 'Pago de 1 clase' : `Pago de ${pagadas.length} clases`,
         medioPago: elegir(MEDIOS),
       });
+      for (const c of pagadas)
+        pagosClase.push({ claseId: c.claseId, alumnoId: alumno.id, movimientoId });
     }
+  }
+  for (let m = 3; m >= 0; m--) {
+    const mes = primerDiaDelMes(addMonths(hoy, -m));
     // RF-36: gastos del profesor
     const fechaGasto = addDays(mes, 1);
     if (fechaGasto <= hoy) {
@@ -347,6 +372,7 @@ async function cargarClases(
     }
   }
   await db.movimiento.createMany({ data: pagos });
+  await db.pagoClase.createMany({ data: pagosClase });
   return emp.id;
 }
 

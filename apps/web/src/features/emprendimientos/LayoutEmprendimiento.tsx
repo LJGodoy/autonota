@@ -1,19 +1,9 @@
-import { useEffect, useState } from 'react';
-import {
-  Link,
-  Navigate,
-  NavLink,
-  Outlet,
-  useNavigate,
-  useOutletContext,
-  useParams,
-} from 'react-router';
+import { useEffect } from 'react';
+import { Link, Navigate, NavLink, Outlet, useOutletContext, useParams } from 'react-router';
 import type { Emprendimiento, TipoEmprendimiento } from '@autonota/shared';
-import { Boton } from '../../components/Boton';
 import { Cargando, MensajeError } from '../../components/Estados';
 import { EtiquetaTipo } from '../../components/EtiquetaEstado';
 import { useEmprendimiento } from './api';
-import { DialogoEliminar, DialogoRenombrar } from './DialogosEmprendimiento';
 
 /** Emprendimiento elegido, para las pantallas hijas */
 export function useEmprendimientoActual(): Emprendimiento {
@@ -32,7 +22,6 @@ export const PESTANIAS: Record<TipoEmprendimiento, { ruta: string; texto: string
   CLASES: [
     { ruta: 'calendario', texto: 'Calendario' },
     { ruta: 'movimientos', texto: 'Movimientos' },
-    { ruta: 'alumnos', texto: 'Alumnos' },
     { ruta: 'estadisticas', texto: 'Estadísticas' },
   ],
   VENTAS: [
@@ -63,9 +52,7 @@ export function SoloTipo({
 /** Pantalla de trabajo de un emprendimiento: encabezado, pestañas y la sección elegida */
 export function LayoutEmprendimiento() {
   const { eid = '' } = useParams();
-  const navegar = useNavigate();
   const consulta = useEmprendimiento(eid);
-  const [dialogo, setDialogo] = useState<'renombrar' | 'eliminar' | null>(null);
   const tipo = consulta.data?.tipo;
 
   // La tapa del cuaderno toma el color del tipo de negocio mientras el emprendimiento está abierto
@@ -106,14 +93,6 @@ export function LayoutEmprendimiento() {
           </h1>
           <EtiquetaTipo tipo={emp.tipo} />
         </div>
-        <div className="flex gap-1">
-          <Boton variante="texto" className="text-sm" onClick={() => setDialogo('renombrar')}>
-            Renombrar
-          </Boton>
-          <Boton variante="texto" className="text-sm" onClick={() => setDialogo('eliminar')}>
-            Eliminar
-          </Boton>
-        </div>
       </div>
 
       <nav
@@ -130,17 +109,6 @@ export function LayoutEmprendimiento() {
       </nav>
 
       <Outlet context={emp} />
-
-      {dialogo === 'renombrar' && (
-        <DialogoRenombrar emprendimiento={emp} alCerrar={() => setDialogo(null)} />
-      )}
-      {dialogo === 'eliminar' && (
-        <DialogoEliminar
-          emprendimiento={emp}
-          alCerrar={() => setDialogo(null)}
-          alEliminar={() => navegar('/emprendimientos')}
-        />
-      )}
     </section>
   );
 }

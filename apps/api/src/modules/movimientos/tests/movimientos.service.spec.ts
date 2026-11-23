@@ -45,7 +45,6 @@ function crear() {
     ),
     eliminar: jest.fn(),
     listar: jest.fn(),
-    alumnoPerteneceA: jest.fn().mockResolvedValue(true),
     tareaPerteneceA: jest.fn().mockResolvedValue(true),
   };
   return { repo, servicio: new MovimientosService(repo as unknown as MovimientosRepository) };
@@ -98,29 +97,14 @@ describe('MovimientosService', () => {
     });
   });
 
-  it('debería aceptar el pago de un alumno solo en emprendimientos de clases', async () => {
+  it('debería seguir imputando los pagos mensuales anteriores a su mes correspondiente', async () => {
     const { repo, servicio } = crear();
-    const pago = { ...ingreso, alumnoId: ALUMNO, mesCorrespondiente: '2026-11' };
-    await expect(servicio.crear(emp('TURNERO'), pago)).rejects.toMatchObject({
-      code: 'TIPO_INCOMPATIBLE',
-    });
-    const r = await servicio.crear(emp('CLASES'), pago);
-    expect(repo.crear).toHaveBeenCalledWith(
-      expect.objectContaining({ mesCorrespondiente: new Date('2026-11-01T00:00:00Z') }),
-    );
-    expect(r.mesImputacion).toBe('2026-11');
-  });
-
-  it('debería rechazar un alumno de otro emprendimiento', async () => {
-    const { repo, servicio } = crear();
-    repo.alumnoPerteneceA.mockResolvedValue(false);
-    await expect(
-      servicio.crear(emp('CLASES'), {
-        ...ingreso,
-        alumnoId: ALUMNO,
-        mesCorrespondiente: '2026-11',
-      }),
-    ).rejects.toMatchObject({ code: 'VALIDACION' });
+    repo.listar.mockResolvedValue([
+      [movimiento({ alumnoId: ALUMNO, mesCorrespondiente: new Date('2026-11-01T00:00:00Z') })],
+      1,
+    ]);
+    const r = await servicio.listar(emp('CLASES'), { page: 1, pageSize: 20 });
+    expect(r.data[0]).toMatchObject({ mesCorrespondiente: '2026-11', mesImputacion: '2026-11' });
   });
 
   it('debería aceptar ventas vinculadas a tareas solo en emprendimientos de ventas', async () => {
@@ -145,16 +129,6 @@ describe('MovimientosService', () => {
       ID,
       expect.objectContaining({ medioPago: null, descripcion: null }),
     );
-  });
-
-  it('no debería cambiar el mes de un movimiento que no es pago de alumno', async () => {
-    const { repo, servicio } = crear();
-    repo.buscarDelEmprendimiento.mockResolvedValue(movimiento());
-    await expect(
-      servicio.editar(emp(), ID, { mesCorrespondiente: '2026-10' }),
-    ).rejects.toMatchObject({
-      code: 'VALIDACION',
-    });
   });
 
   it('debería responder NO_ENCONTRADO para un id inválido o de otro emprendimiento', async () => {

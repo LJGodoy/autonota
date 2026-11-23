@@ -16,8 +16,8 @@ test.describe.serial('cuenta y sesión', () => {
     await page.getByRole('button', { name: 'Crear cuenta' }).click();
     await expect(page.getByRole('heading', { name: 'Hola, Prueba E2E' })).toBeVisible();
 
-    await page.getByRole('link', { name: 'Mi cuenta' }).click();
-    await page.getByRole('button', { name: 'Cerrar sesión' }).click();
+    await page.getByRole('button', { name: 'Menú de la cuenta' }).click();
+    await page.getByRole('menuitem', { name: 'Cerrar sesión' }).click();
     await expect(page).toHaveURL(/\/$/);
 
     // CU-01
@@ -33,7 +33,8 @@ test.describe.serial('cuenta y sesión', () => {
     expect(await page.evaluate(() => document.cookie)).not.toContain('refresh_token');
 
     // CU-17: limpieza
-    await page.getByRole('link', { name: 'Mi cuenta' }).click();
+    await page.getByRole('button', { name: 'Menú de la cuenta' }).click();
+    await page.getByRole('menuitem', { name: 'Eliminar cuenta' }).click();
     await page.getByRole('button', { name: 'Eliminar mi cuenta' }).click();
     await page.getByLabel('Tu contraseña, para confirmar').fill(password);
     await page.getByRole('button', { name: 'Eliminar para siempre' }).click();

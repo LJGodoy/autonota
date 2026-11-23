@@ -61,11 +61,9 @@ export class MovimientosService {
         medioPago: input.medioPago ?? null,
         claveIdempotencia: claveIdempotencia ?? null,
         turnoId: null,
-        alumnoId: input.alumnoId ?? null,
+        alumnoId: null,
         tareaId: input.tareaId ?? null,
-        mesCorrespondiente: input.mesCorrespondiente
-          ? desdeTextoMes(input.mesCorrespondiente)
-          : null,
+        mesCorrespondiente: null,
       },
       claveIdempotencia,
     );
@@ -123,26 +121,19 @@ export class MovimientosService {
     input: EditarMovimientoInput,
   ): Promise<Movimiento> {
     const actual = await this.obtener(emp, id);
-    if (input.mesCorrespondiente && !actual.alumnoId) {
-      throw new DomainException(
-        'VALIDACION',
-        'Solo los pagos de alumnos tienen mes correspondiente.',
-        [{ field: 'mesCorrespondiente', message: 'Este movimiento no es el pago de un alumno' }],
-      );
-    }
     const actualizado = await this.repo.actualizar(actual.id, {
       montoCentavos: input.montoCentavos === undefined ? undefined : BigInt(input.montoCentavos),
       fecha: input.fecha ? desdeTextoFecha(input.fecha) : undefined,
       descripcion: input.descripcion === undefined ? undefined : input.descripcion || null,
       medioPago: input.medioPago,
-      mesCorrespondiente: input.mesCorrespondiente
-        ? desdeTextoMes(input.mesCorrespondiente)
-        : undefined,
     });
     return aMovimientoDto(actualizado);
   }
 
-  /** RF-07: eliminar un movimiento cargado por error, incluidos los cobros de turnos */
+  /**
+   * RF-07: eliminar un movimiento cargado por error, incluidos los cobros de turnos. Si era el
+   * pago de clases, esas clases vuelven a quedar impagas (cascada en pagos_clase).
+   */
   async eliminar(emp: EmprendimientoDePeticion, id: string): Promise<void> {
     const actual = await this.obtener(emp, id);
     await this.repo.eliminar(actual.id);
@@ -154,10 +145,8 @@ export class MovimientosService {
     return m;
   }
 
-  private async buscarPorClave(
-    emprendimientoId: string,
-    clave: string,
-  ): Promise<Movimiento | null> {
+  /** También lo usa el pago por clase de los alumnos */
+  async buscarPorClave(emprendimientoId: string, clave: string): Promise<Movimiento | null> {
     const existente = await this.repo.buscarPorClave(clave);
     if (!existente) return null;
     if (existente.emprendimientoId !== emprendimientoId) {
@@ -175,19 +164,6 @@ export class MovimientosService {
     emp: EmprendimientoDePeticion,
     input: CrearMovimientoInput,
   ): Promise<void> {
-    if (input.alumnoId) {
-      if (emp.tipo !== 'CLASES') {
-        throw new DomainException(
-          'TIPO_INCOMPATIBLE',
-          'Los pagos de alumnos son solo para calendarios de clases.',
-        );
-      }
-      if (!(await this.repo.alumnoPerteneceA(input.alumnoId, emp.id))) {
-        throw new DomainException('VALIDACION', 'El alumno no pertenece a este emprendimiento.', [
-          { field: 'alumnoId', message: 'Alumno inexistente' },
-        ]);
-      }
-    }
     if (input.tareaId) {
       if (emp.tipo !== 'VENTAS') {
         throw new DomainException(

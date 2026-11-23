@@ -1,4 +1,10 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import type {
   CrearTareaInput,
   EditarTareaInput,
@@ -14,6 +20,8 @@ export interface FiltroTareas {
   estado?: EstadoTarea;
   prioridad?: PrioridadTarea;
   orden: 'creadoEn' | 'prioridad';
+  /** Solo las realizadas de los últimos N días */
+  realizadasDias?: number;
 }
 
 const claveTareas = (eid: string) => ['emprendimientos', eid, 'tareas'] as const;
@@ -23,11 +31,28 @@ export function useTareas(eid: string, f: FiltroTareas) {
     queryKey: [...claveTareas(eid), 'lista', f],
     queryFn: () => {
       const q = new URLSearchParams({ orden: f.orden, pageSize: '100' });
+      if (f.realizadasDias) q.set('realizadasDias', String(f.realizadasDias));
       if (f.estado) q.set('estado', f.estado);
       if (f.prioridad) q.set('prioridad', f.prioridad);
       return api<Paginado<Tarea>>(`/emprendimientos/${eid}/tareas?${q.toString()}`);
     },
     placeholderData: keepPreviousData,
+  });
+}
+
+/** Realizadas por fecha de finalización, de a 10; se piden más con fetchNextPage */
+export function useRealizadas(eid: string, prioridad: PrioridadTarea | undefined, activa: boolean) {
+  return useInfiniteQuery({
+    queryKey: [...claveTareas(eid), 'realizadas', prioridad],
+    enabled: activa,
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) => {
+      const q = new URLSearchParams({ page: String(pageParam), pageSize: '10' });
+      if (prioridad) q.set('prioridad', prioridad);
+      return api<Paginado<Tarea>>(`/emprendimientos/${eid}/tareas/realizadas?${q.toString()}`);
+    },
+    getNextPageParam: ({ meta }) =>
+      meta.page * meta.pageSize < meta.total ? meta.page + 1 : undefined,
   });
 }
 

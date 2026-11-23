@@ -20,16 +20,12 @@ describe('esquemaCrearMovimiento', () => {
     }
   });
 
-  it('debería exigir alumno y mes juntos (RF-34)', () => {
+  it('debería rechazar pagos mensuales de alumnos: ahora se pagan por clase', () => {
     const alumnoId = '6f1c2a54-1d1e-4e47-9a43-1f2e3d4c5b6a';
-    expect(esquemaCrearMovimiento.safeParse({ ...base, alumnoId }).success).toBe(false);
-    expect(
-      esquemaCrearMovimiento.safeParse({ ...base, mesCorrespondiente: '2026-11' }).success,
-    ).toBe(false);
     expect(
       esquemaCrearMovimiento.safeParse({ ...base, alumnoId, mesCorrespondiente: '2026-11' })
         .success,
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it('debería rechazar un gasto vinculado a una tarea', () => {

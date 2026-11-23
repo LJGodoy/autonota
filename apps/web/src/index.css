@@ -31,6 +31,9 @@
   --color-postit-media: #fbefb4;
   --color-postit-baja: #d4edd2;
 
+  /* Clase con pago parcial en el calendario: excepción aprobada por el dueño (amarillo) */
+  --color-clase-parcial: #f4c430;
+
   /* Tapas: barra superior; cada tipo de negocio, un tono de la escala de marrones */
   --color-tapa-general: #161311;
   --color-tapa-turnero: #3b281c;
@@ -261,6 +264,26 @@
 }
 .calendario-cuaderno .evento-ausente .fc-event-main {
   color: var(--color-rojo);
+}
+/* Clases por estado de pago: negro nadie pagó, amarillo algunos, verde todos (más ◐ y ✓) */
+.calendario-cuaderno .evento-clase-debe {
+  background: var(--color-tinta);
+  border-color: var(--color-tinta);
+}
+.calendario-cuaderno .evento-clase-debe .fc-event-main,
+.calendario-cuaderno .evento-clase-pagada .fc-event-main {
+  color: var(--color-hoja);
+}
+.calendario-cuaderno .evento-clase-parcial {
+  background: var(--color-clase-parcial);
+  border-color: color-mix(in srgb, var(--color-clase-parcial) 60%, var(--color-tinta));
+}
+.calendario-cuaderno .evento-clase-parcial .fc-event-main {
+  color: var(--color-tinta);
+}
+.calendario-cuaderno .evento-clase-pagada {
+  background: var(--color-verde);
+  border-color: var(--color-verde);
 }
 .calendario-cuaderno .evento-cancelado {
   border-color: var(--color-lapiz);

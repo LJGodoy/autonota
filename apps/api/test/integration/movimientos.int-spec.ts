@@ -103,56 +103,61 @@ describe('/movimientos', () => {
     expect(campos).toEqual(expect.arrayContaining(['montoCentavos', 'fecha']));
   });
 
-  it('debería contar el pago de un alumno en el mes asignado y no en el de cobro (RF-34, RF-70)', async () => {
+  it('debería seguir contando un pago mensual anterior en el mes asignado (RF-34, RF-70)', async () => {
     const { s, base, eid } = await nuevoEmprendimiento('CLASES');
     const alumno = await prisma.alumno.create({
       data: { emprendimientoId: eid, nombre: 'Julián' },
     });
-    const pago = await http()
+    // Pago mensual cargado antes del pago por clase
+    const pago = await prisma.movimiento.create({
+      data: {
+        emprendimientoId: eid,
+        tipo: 'INGRESO',
+        montoCentavos: 4000000n,
+        fecha: new Date('2026-12-03'),
+        alumnoId: alumno.id,
+        mesCorrespondiente: new Date('2026-11-01'),
+      },
+    });
+
+    const noviembre = await http().get(`${base}?mes=2026-11`).set(auth(s)).expect(200);
+    expect(noviembre.body.data).toEqual([
+      expect.objectContaining({
+        id: pago.id,
+        mesCorrespondiente: '2026-11',
+        mesImputacion: '2026-11',
+      }),
+    ]);
+    const diciembre = await http().get(`${base}?mes=2026-12`).set(auth(s)).expect(200);
+    expect(diciembre.body.data).toEqual([]);
+
+    // Los pagos nuevos van por clase: /movimientos ya no acepta alumno ni mes
+    await http()
       .post(base)
       .set(auth(s))
       .send({
         tipo: 'INGRESO',
-        montoCentavos: 4000000,
+        montoCentavos: 1,
         fecha: '2026-12-03',
         alumnoId: alumno.id,
         mesCorrespondiente: '2026-11',
       })
-      .expect(201);
-    expect(pago.body).toMatchObject({ mesCorrespondiente: '2026-11', mesImputacion: '2026-11' });
-
-    const noviembre = await http().get(`${base}?mes=2026-11`).set(auth(s)).expect(200);
-    expect(noviembre.body.data.map((m: { id: string }) => m.id)).toEqual([pago.body.id]);
-    const diciembre = await http().get(`${base}?mes=2026-12`).set(auth(s)).expect(200);
-    expect(diciembre.body.data).toEqual([]);
-
-    // Falta el mes: la API no lo completa por su cuenta
-    await http()
-      .post(base)
-      .set(auth(s))
-      .send({ tipo: 'INGRESO', montoCentavos: 1, fecha: '2026-12-03', alumnoId: alumno.id })
       .expect(400);
   });
 
-  it('debería rechazar alumnos fuera de un calendario de clases y alumnos de otro emprendimiento', async () => {
+  it('debería rechazar pagos de alumnos fuera de un calendario de clases o de otro emprendimiento', async () => {
     const turnero = await nuevoEmprendimiento('TURNERO');
     const clases = await nuevoEmprendimiento('CLASES');
     const ajeno = await prisma.alumno.create({
       data: { emprendimientoId: clases.eid, nombre: 'Ajeno' },
     });
-    const pago = {
-      tipo: 'INGRESO',
-      montoCentavos: 100,
-      fecha: '2026-11-01',
-      alumnoId: ajeno.id,
-      mesCorrespondiente: '2026-11',
-    };
+    const pago = { montoCentavos: 100, claseIds: [randomUUID()] };
+    const pagos = (eid: string) => `${API}/emprendimientos/${eid}/alumnos/${ajeno.id}/pagos`;
 
-    const r1 = await http().post(turnero.base).set(auth(turnero.s)).send(pago).expect(409);
+    const r1 = await http().post(pagos(turnero.eid)).set(auth(turnero.s)).send(pago).expect(409);
     expect(r1.body.error.code).toBe('TIPO_INCOMPATIBLE');
     const otroClases = await nuevoEmprendimiento('CLASES');
-    const r2 = await http().post(otroClases.base).set(auth(otroClases.s)).send(pago).expect(400);
-    expect(r2.body.error.code).toBe('VALIDACION');
+    await http().post(pagos(otroClases.eid)).set(auth(otroClases.s)).send(pago).expect(404);
   });
 
   it('debería conservar las ventas al borrar su tarea (RF-55)', async () => {
@@ -203,12 +208,16 @@ describe('/estadisticas', () => {
       data: { emprendimientoId: eid, nombre: 'Camila' },
     });
     const cargar = (cuerpo: object) => http().post(base).set(auth(s)).send(cuerpo).expect(201);
-    await cargar({
-      tipo: 'INGRESO',
-      montoCentavos: 4000000,
-      fecha: '2026-12-02',
-      alumnoId: alumno.id,
-      mesCorrespondiente: '2026-11',
+    // Pago mensual anterior al pago por clase: cuenta en el mes asignado
+    await prisma.movimiento.create({
+      data: {
+        emprendimientoId: eid,
+        tipo: 'INGRESO',
+        montoCentavos: 4000000n,
+        fecha: new Date('2026-12-02'),
+        alumnoId: alumno.id,
+        mesCorrespondiente: new Date('2026-11-01'),
+      },
     });
     await cargar({ tipo: 'INGRESO', montoCentavos: 10, fecha: '2026-11-30' });
     await cargar({ tipo: 'GASTO', montoCentavos: 6000050, fecha: '2026-11-01' });

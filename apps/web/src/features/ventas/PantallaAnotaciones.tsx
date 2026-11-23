@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ESTADOS_TAREA,
   NOMBRE_ESTADO_TAREA,
@@ -8,10 +8,10 @@ import {
   type PrioridadTarea,
 } from '@autonota/shared';
 import { Boton } from '../../components/Boton';
-import { Cargando, MensajeError, Vacio } from '../../components/Estados';
+import { Cargando, MensajeError } from '../../components/Estados';
 import { ErrorApi } from '../../lib/api';
 import { useEmprendimientoActual } from '../emprendimientos/LayoutEmprendimiento';
-import { useCambiarEstadoTarea, useTareas } from './api';
+import { useCambiarEstadoTarea, useRealizadas, useTareas } from './api';
 import { DetalleTarea } from './DetalleTarea';
 import { FormTarea } from './FormTarea';
 import { TarjetaTarea } from './TarjetaTarea';
@@ -31,7 +31,12 @@ export function PantallaAnotaciones() {
     estado: estado || undefined,
     prioridad: prioridad || undefined,
     orden,
+    realizadasDias: 7,
   });
+  const [verTodas, setVerTodas] = useState(false);
+  const [sobre, setSobre] = useState<EstadoTarea | null>(null);
+  const todas = useRealizadas(emp.id, prioridad || undefined, verTodas);
+  const centinela = useRef<HTMLLIElement>(null);
   const cambiar = useCambiarEstadoTarea(emp.id);
 
   const alCambiarEstado = (id: string, nuevoEstado: EstadoTarea) => {
@@ -44,6 +49,14 @@ export function PantallaAnotaciones() {
       },
     );
   };
+  const { hasNextPage, isFetchingNextPage, fetchNextPage } = todas;
+  useEffect(() => {
+    const el = centinela.current;
+    if (!el || !hasNextPage || isFetchingNextPage) return;
+    const obs = new IntersectionObserver((e) => e[0]?.isIntersecting && void fetchNextPage());
+    obs.observe(el);
+    return () => obs.disconnect();
+  });
   const columnas = estado ? [estado] : ESTADOS_TAREA;
   const tareas = consulta.data?.data ?? [];
 
@@ -102,18 +115,35 @@ export function PantallaAnotaciones() {
       {consulta.isError && (
         <MensajeError error={consulta.error} reintentar={() => void consulta.refetch()} />
       )}
-      {consulta.isSuccess && tareas.length === 0 && (
-        <Vacio>No hay anotaciones con esos filtros.</Vacio>
-      )}
-      {consulta.isSuccess && tareas.length > 0 && (
+      {/* El tablero se ve aunque esté vacío: cada columna muestra (0) y "Ver todas" sigue a mano */}
+      {consulta.isSuccess && (
         <div className={`grid gap-4 ${columnas.length > 1 ? 'md:grid-cols-3' : ''}`}>
           {columnas.map((col) => {
-            const delEstado = tareas.filter((t) => t.estado === col);
+            const conTodas = col === 'REALIZADA' && verTodas;
+            const delEstado = conTodas
+              ? (todas.data?.pages.flatMap((p) => p.data) ?? [])
+              : tareas.filter((t) => t.estado === col);
             return (
               <section
                 key={col}
                 aria-labelledby={`col-${col}`}
-                className="flex flex-col gap-2 rounded-trazo-2 border border-linea bg-arena/40 p-3"
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setSobre(col);
+                }}
+                onDragLeave={() => setSobre(null)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setSobre(null);
+                  const id = e.dataTransfer.getData('text/plain');
+                  const t = [...tareas, ...(todas.data?.pages.flatMap((p) => p.data) ?? [])].find(
+                    (x) => x.id === id,
+                  );
+                  if (t && t.estado !== col) alCambiarEstado(id, col);
+                }}
+                className={`flex flex-col gap-2 rounded-trazo-2 border p-3 ${
+                  sobre === col ? 'border-cafe bg-arena' : 'border-linea bg-arena/40'
+                }`}
               >
                 <h2 id={`col-${col}`} className="font-mano text-3xl font-bold text-cafe">
                   {NOMBRE_ESTADO_TAREA[col]}{' '}
@@ -121,14 +151,26 @@ export function PantallaAnotaciones() {
                 </h2>
                 <ul className="flex flex-col gap-2">
                   {delEstado.map((t) => (
-                    <TarjetaTarea
-                      key={t.id}
-                      tarea={t}
-                      alAbrir={() => setAbierta(t.id)}
-                      alCambiarEstado={(e) => alCambiarEstado(t.id, e)}
-                    />
+                    <TarjetaTarea key={t.id} tarea={t} alAbrir={() => setAbierta(t.id)} />
                   ))}
+                  {conTodas && <li ref={centinela} aria-hidden />}
                 </ul>
+                {col === 'REALIZADA' && (
+                  <div className="flex flex-wrap gap-2">
+                    <Boton variante="secundario" onClick={() => setVerTodas(!verTodas)}>
+                      {verTodas ? 'Ver solo la última semana' : 'Ver todas'}
+                    </Boton>
+                    {conTodas && todas.hasNextPage && (
+                      <Boton
+                        variante="secundario"
+                        disabled={todas.isFetchingNextPage}
+                        onClick={() => void todas.fetchNextPage()}
+                      >
+                        Cargar más
+                      </Boton>
+                    )}
+                  </div>
+                )}
               </section>
             );
           })}

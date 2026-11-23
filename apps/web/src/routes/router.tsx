@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter, Navigate } from 'react-router';
 import { LayoutApp, LayoutPublico, SoloSinSesion } from './Layouts';
 import { PantallaInicio } from '../features/auth/PantallaInicio';
 import { PantallaIngresar } from '../features/auth/PantallaIngresar';
@@ -16,7 +16,7 @@ import {
 } from '../features/emprendimientos/LayoutEmprendimiento';
 import { PantallaMovimientos } from '../features/movimientos/PantallaMovimientos';
 import { PantallaClientes, PantallaHorarios } from '../features/turnero/PantallasTurnero';
-import { PantallaAlumnos } from '../features/clases/PantallaAlumnos';
+import { PantallaPerfilAlumno } from '../features/clases/PantallaAlumnos';
 import { PantallaAnotaciones } from '../features/ventas/PantallaAnotaciones';
 import { PantallaNoEncontrada } from './PantallaNoEncontrada';
 
@@ -95,13 +95,15 @@ export const router = createBrowserRouter([
           // Calendario de clases (fase 6)
           { path: 'calendario', lazy: calendario },
           {
-            path: 'alumnos',
+            path: 'calendario/alumnos/:aid',
             element: (
               <SoloTipo tipo="CLASES">
-                <PantallaAlumnos />
+                <PantallaPerfilAlumno />
               </SoloTipo>
             ),
           },
+          // Los alumnos ahora están junto al calendario; la ruta queda para links viejos
+          { path: 'alumnos', element: <Navigate to="../calendario" replace /> },
           // Ventas (fase 7)
           {
             path: 'anotaciones',

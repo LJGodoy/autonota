@@ -45,12 +45,7 @@ export class MovimientosRepository {
 
   actualizar(
     id: string,
-    datos: Partial<
-      Pick<
-        DatosMovimiento,
-        'montoCentavos' | 'fecha' | 'descripcion' | 'medioPago' | 'mesCorrespondiente'
-      >
-    >,
+    datos: Partial<Pick<DatosMovimiento, 'montoCentavos' | 'fecha' | 'descripcion' | 'medioPago'>>,
   ): Promise<Movimiento> {
     return this.prisma.movimiento.update({ where: { id }, data: datos });
   }
@@ -87,10 +82,6 @@ export class MovimientosRepository {
       }),
       this.prisma.movimiento.count({ where }),
     ]);
-  }
-
-  async alumnoPerteneceA(alumnoId: string, emprendimientoId: string): Promise<boolean> {
-    return (await this.prisma.alumno.count({ where: { id: alumnoId, emprendimientoId } })) > 0;
   }
 
   async tareaPerteneceA(tareaId: string, emprendimientoId: string): Promise<boolean> {

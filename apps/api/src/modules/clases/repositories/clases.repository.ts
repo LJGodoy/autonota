@@ -4,7 +4,10 @@ import { PrismaService } from '../../../common/prisma/prisma.service';
 
 const INCLUIR = {
   alumnos: {
-    include: { alumno: { select: { id: true, nombre: true, activo: true } } },
+    include: {
+      alumno: { select: { id: true, nombre: true, activo: true } },
+      pago: { select: { movimientoId: true } },
+    },
     orderBy: { alumno: { nombre: 'asc' } },
   },
 } satisfies Prisma.ClaseInclude;
@@ -50,7 +53,10 @@ export class ClasesRepository {
     return this.prisma.clase.create({ data: aCreacion(c), include: INCLUIR });
   }
 
-  /** RF-32: edita la clase y, si vienen, reemplaza sus alumnos, en una transacción */
+  /**
+   * RF-32: edita la clase y, si vienen, reemplaza sus alumnos, en una transacción.
+   * Solo borra a los que salen, para no perder los pagos de los que siguen.
+   */
   actualizar(
     id: string,
     datos: Prisma.ClaseUncheckedUpdateInput,
@@ -58,23 +64,20 @@ export class ClasesRepository {
   ): Promise<ClaseConAlumnos> {
     return this.prisma.$transaction(async (tx) => {
       if (alumnoIds) {
-        await tx.claseAlumno.deleteMany({ where: { claseId: id } });
+        await tx.claseAlumno.deleteMany({ where: { claseId: id, alumnoId: { notIn: alumnoIds } } });
         await tx.claseAlumno.createMany({
           data: alumnoIds.map((alumnoId) => ({ claseId: id, alumnoId })),
+          skipDuplicates: true,
         });
       }
       return tx.clase.update({ where: { id }, data: datos, include: INCLUIR });
     });
   }
 
-  /** Clases no canceladas que empiezan en el rango (para copiar semana) */
-  noCanceladasQueEmpiezanEn(
-    emprendimientoId: string,
-    desde: Date,
-    hasta: Date,
-  ): Promise<ClaseConAlumnos[]> {
+  /** Clases que empiezan en el rango (para copiar semana) */
+  queEmpiezanEn(emprendimientoId: string, desde: Date, hasta: Date): Promise<ClaseConAlumnos[]> {
     return this.prisma.clase.findMany({
-      where: { emprendimientoId, estado: 'PROGRAMADA', inicio: { gte: desde, lt: hasta } },
+      where: { emprendimientoId, inicio: { gte: desde, lt: hasta } },
       include: INCLUIR,
       orderBy: { inicio: 'asc' },
     });
@@ -85,5 +88,18 @@ export class ClasesRepository {
     return this.prisma.$transaction(
       clases.map((c) => this.prisma.clase.create({ data: aCreacion(c), include: INCLUIR })),
     );
+  }
+
+  /** Cancelar = borrar; los pagos de la clase pierden el vínculo pero el ingreso queda */
+  async eliminar(id: string): Promise<void> {
+    await this.prisma.clase.delete({ where: { id } });
+  }
+
+  /** Borra las clases que empiezan en el rango; devuelve cuántas */
+  async eliminarQueEmpiezanEn(emprendimientoId: string, desde: Date, hasta: Date): Promise<number> {
+    const r = await this.prisma.clase.deleteMany({
+      where: { emprendimientoId, inicio: { gte: desde, lt: hasta } },
+    });
+    return r.count;
   }
 }

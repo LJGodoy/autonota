@@ -1,4 +1,5 @@
-import { Link, Navigate, NavLink, Outlet } from 'react-router';
+import { Link, Navigate, Outlet, useNavigate } from 'react-router';
+import { MenuAcciones } from '../components/MenuAcciones';
 import { Logo } from '../components/Logo';
 import { Cargando } from '../components/Estados';
 import { useSesion } from '../lib/sesion';
@@ -41,36 +42,34 @@ export function LayoutPublico() {
 
 /** Pantallas que requieren sesión: la tapa del cuaderno arriba, con el color del emprendimiento */
 export function LayoutApp() {
-  const { estado, salidaVoluntaria } = useSesion();
+  const { estado, salidaVoluntaria, usuario, cerrar } = useSesion();
+  const navegar = useNavigate();
   if (estado === 'cargando') return <Cargando texto="Abriendo tu cuaderno…" />;
   // Si la sesión venció, al ingreso; si el usuario salió por su cuenta, al inicio
   if (estado === 'anonimo') return <Navigate to={salidaVoluntaria ? '/' : '/ingresar'} replace />;
-
-  const claseEnlace = ({ isActive }: { isActive: boolean }) =>
-    `whitespace-nowrap rounded-trazo px-2.5 py-1.5 font-bold text-hoja no-underline transition-colors duration-150 hover:bg-hoja/15 hover:text-hoja ${
-      isActive ? 'bg-hoja/20 shadow-[inset_0_-2px_0_var(--color-resaltador)]' : 'text-hoja/85'
-    }`;
 
   return (
     <div className="flex min-h-dvh flex-col">
       <BannerDemo />
       <header className="bg-tapa text-hoja transition-colors duration-300">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-4 py-3">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3">
           <Logo destino="/emprendimientos" sobreTapa />
-          <nav aria-label="Principal" className="flex gap-1 text-sm sm:gap-2 sm:text-base">
-            <NavLink to="/emprendimientos" end className={claseEnlace}>
-              Emprendimientos
-            </NavLink>
-            <NavLink to="/cuenta" className={claseEnlace}>
-              Mi cuenta
-            </NavLink>
-          </nav>
+          <MenuAcciones
+            etiqueta="Menú de la cuenta"
+            disparador={`${usuario?.nombre ?? 'Mi cuenta'} ▾`}
+            claseBoton="text-hoja hover:bg-hoja/15"
+            opciones={[
+              { texto: 'Cambiar contraseña', alElegir: () => navegar('/recuperar') },
+              { texto: 'Eliminar cuenta', alElegir: () => navegar('/cuenta'), peligro: true },
+              { texto: 'Cerrar sesión', alElegir: () => void cerrar() },
+            ]}
+          />
         </div>
       </header>
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-4 pb-10">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 pt-4 pb-10">
         <Outlet />
       </main>
-      <PieDePagina ancho="max-w-5xl" />
+      <PieDePagina ancho="max-w-7xl" />
     </div>
   );
 }

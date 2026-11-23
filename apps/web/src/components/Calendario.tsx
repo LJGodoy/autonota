@@ -49,6 +49,8 @@ export function Calendario(props: Props) {
         height="auto"
         expandRows
         allDaySlot={false}
+        // La hora ya está en el eje: el recuadro deja todo el espacio para el texto
+        displayEventTime={false}
         nowIndicator
         slotMinTime="07:00:00"
         slotMaxTime="23:00:00"

@@ -33,13 +33,6 @@ enum EstadoTurno {
   @@map("estado_turno")
 }
 
-enum EstadoClase {
-  PROGRAMADA
-  CANCELADA
-
-  @@map("estado_clase")
-}
-
 enum ModalidadClase {
   INDIVIDUAL
   GRUPAL
@@ -229,7 +222,6 @@ model Clase {
   modalidad        ModalidadClase
   inicio           DateTime       @db.Timestamptz(6)
   fin              DateTime       @db.Timestamptz(6)
-  estado           EstadoClase    @default(PROGRAMADA)
   creadoEn         DateTime       @default(now()) @map("creado_en") @db.Timestamptz(6)
   actualizadoEn    DateTime       @default(now()) @updatedAt @map("actualizado_en") @db.Timestamptz(6)
   emprendimiento   Emprendimiento @relation(fields: [emprendimientoId], references: [id], onDelete: Cascade)
@@ -244,10 +236,25 @@ model ClaseAlumno {
   alumnoId String @map("alumno_id") @db.Uuid
   clase    Clase  @relation(fields: [claseId], references: [id], onDelete: Cascade)
   alumno   Alumno @relation(fields: [alumnoId], references: [id], onDelete: Cascade)
+  pago     PagoClase?
 
   @@id([claseId, alumnoId])
   @@index([alumnoId], map: "ix_clase_alumnos_alumno")
   @@map("clase_alumnos")
+}
+
+/// Pago por clase: qué (clase, alumno) cubre un ingreso. Borrar la clase o el movimiento borra el vínculo.
+model PagoClase {
+  claseId      String      @map("clase_id") @db.Uuid
+  alumnoId     String      @map("alumno_id") @db.Uuid
+  movimientoId String      @map("movimiento_id") @db.Uuid
+  claseAlumno  ClaseAlumno @relation(fields: [claseId, alumnoId], references: [claseId, alumnoId], onDelete: Cascade)
+  movimiento   Movimiento  @relation(fields: [movimientoId], references: [id], onDelete: Cascade)
+
+  // la clave primaria impide pagar dos veces la misma clase del mismo alumno
+  @@id([claseId, alumnoId])
+  @@index([movimientoId], map: "ix_pagos_clase_movimiento")
+  @@map("pagos_clase")
 }
 
 // --- Ventas ---
@@ -295,6 +302,7 @@ model Movimiento {
   turnoId            String?        @map("turno_id") @db.Uuid
   alumnoId           String?        @map("alumno_id") @db.Uuid
   tareaId            String?        @map("tarea_id") @db.Uuid
+  // Solo pagos mensuales anteriores al pago por clase; ya no se crean nuevos
   mesCorrespondiente DateTime?      @map("mes_correspondiente") @db.Date
   // mes_imputacion: columna GENERATED STORED creada con SQL (Parte 3, sección 4.2)
   creadoEn           DateTime       @default(now()) @map("creado_en") @db.Timestamptz(6)
@@ -302,6 +310,7 @@ model Movimiento {
   turno              Turno?         @relation(fields: [turnoId], references: [id], onDelete: NoAction)
   alumno             Alumno?        @relation(fields: [alumnoId], references: [id], onDelete: NoAction)
   tarea              Tarea?         @relation(fields: [tareaId], references: [id], onDelete: SetNull)
+  clasesPagadas      PagoClase[]
 
   @@map("movimientos")
 }

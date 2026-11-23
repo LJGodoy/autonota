@@ -1,25 +1,49 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
   Clase,
+  ClaseDeAlumno,
   CrearClaseInput,
   EditarClaseInput,
   Movimiento,
+  PagoClasesInput,
   Paginado,
+  Persona,
   ResultadoCopiaClases,
 } from '@autonota/shared';
 import { api } from '../../lib/api';
 
 const base = (eid: string) => `/emprendimientos/${eid}`;
+const rango = (desde: string, hasta: string) =>
+  `desde=${encodeURIComponent(desde)}&hasta=${encodeURIComponent(hasta)}`;
 
 export function useClases(eid: string, desde: string, hasta: string) {
   return useQuery({
     queryKey: ['emprendimientos', eid, 'clases', desde, hasta],
-    queryFn: () =>
-      api<Clase[]>(
-        `${base(eid)}/clases?desde=${encodeURIComponent(desde)}&hasta=${encodeURIComponent(hasta)}`,
-      ),
+    queryFn: () => api<Clase[]>(`${base(eid)}/clases?${rango(desde, hasta)}`),
     placeholderData: keepPreviousData,
     enabled: Boolean(desde && hasta),
+  });
+}
+
+export function useAlumno(eid: string, alumnoId: string) {
+  return useQuery({
+    queryKey: ['emprendimientos', eid, 'alumnos', alumnoId],
+    queryFn: () => api<Persona>(`${base(eid)}/alumnos/${alumnoId}`),
+  });
+}
+
+/** Clases del alumno que empiezan en el mes (AAAA-MM), o todas las impagas */
+export function useClasesAlumno(
+  eid: string,
+  alumnoId: string,
+  filtro: { mes: string } | 'impagas',
+) {
+  const query = filtro === 'impagas' ? 'impagas=true' : `mes=${filtro.mes}`;
+  return useQuery({
+    queryKey: ['emprendimientos', eid, 'clases', 'alumno', alumnoId, query],
+    queryFn: () => api<ClaseDeAlumno[]>(`${base(eid)}/alumnos/${alumnoId}/clases?${query}`),
+    placeholderData: keepPreviousData,
+    enabled: Boolean(alumnoId),
   });
 }
 
@@ -47,11 +71,42 @@ export function useGuardarClase(eid: string) {
   });
 }
 
-export function useCancelarClase(eid: string) {
+/** Cancelar = borrar la clase; los ingresos quedan */
+export function useEliminarClase(eid: string) {
   const invalidar = useInvalidar(eid);
   return useMutation({
-    mutationFn: (id: string) =>
-      api<Clase>(`${base(eid)}/clases/${id}/cancelar`, { method: 'POST' }),
+    mutationFn: (id: string) => api<void>(`${base(eid)}/clases/${id}`, { method: 'DELETE' }),
+    onSuccess: invalidar,
+  });
+}
+
+export function useBorrarClasesDelRango(eid: string) {
+  const invalidar = useInvalidar(eid);
+  return useMutation({
+    mutationFn: ({ desde, hasta }: { desde: string; hasta: string }) =>
+      api<{ borradas: number }>(`${base(eid)}/clases?${rango(desde, hasta)}`, { method: 'DELETE' }),
+    onSuccess: invalidar,
+  });
+}
+
+/** Pago por clase, con Idempotency-Key generada al abrir el formulario */
+export function useRegistrarPago(eid: string) {
+  const invalidar = useInvalidar(eid);
+  return useMutation({
+    mutationFn: ({
+      alumnoId,
+      datos,
+      clave,
+    }: {
+      alumnoId: string;
+      datos: PagoClasesInput;
+      clave: string;
+    }) =>
+      api<Movimiento>(`${base(eid)}/alumnos/${alumnoId}/pagos`, {
+        method: 'POST',
+        body: datos,
+        idempotencyKey: clave,
+      }),
     onSuccess: invalidar,
   });
 }

@@ -156,11 +156,8 @@ export function PantallaAgenda() {
             });
         }}
         contenidoEvento={(arg) => (
-          <div className="truncate px-1 leading-tight" title={`${arg.timeText} ${arg.event.title}`}>
-            <b>
-              {arg.event.extendedProps.estado === 'REALIZADO' ? '✓ ' : ''}
-              {arg.timeText}
-            </b>{' '}
+          <div className="overflow-hidden px-1 leading-tight break-words" title={arg.event.title}>
+            {arg.event.extendedProps.estado === 'REALIZADO' && <b>✓ </b>}
             {arg.event.title}
           </div>
         )}
